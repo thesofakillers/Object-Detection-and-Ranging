@@ -1,5 +1,6 @@
 # Stereo Vision Disparity Tools
 /// Originally from https://github.com/tobybreckon/stereo-disparity ///
+
 a small selection of tools for calculating disparity and working with the rectified output from the CR MultiSense S21 stereo camera (and optional Yoctopuce GPS/IMU data if available)
 
 OpenCV Python computer vision examples used for teaching and research within the undergraduate Computer Science programme
