@@ -15,7 +15,7 @@ import os
 ################################################################################
 # settings for datsets in general
 
-master_path_to_dataset = "/tmp/pedestrain"; # ** need to edit this **
+master_path_to_dataset = "../Data/Training"; # ** need to edit this **
 
 # data location - training examples
 
