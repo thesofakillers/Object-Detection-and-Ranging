@@ -20,7 +20,7 @@ from sliding_window import *
 
 ################################################################################
 
-directory_to_cycle = "pedestrain/INRIAPerson/Test/pos/";
+directory_to_cycle = "../Data/Training/INRIAPerson/Test/pos/";
 
 show_scan_window_process = True;
 
