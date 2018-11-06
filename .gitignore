@@ -107,5 +107,4 @@ venv.bak/
 #Unnescessarily large Data
 Data/
 
-*.xml
 *.npy
