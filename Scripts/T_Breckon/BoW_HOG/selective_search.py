@@ -44,6 +44,9 @@ for filename in sorted(os.listdir(directory_to_cycle)):
     # if it is a PNG file
 
     if '.png' in filename:
+
+        #print name of current image being examined
+
         print(os.path.join(directory_to_cycle, filename));
 
         # read image from file
