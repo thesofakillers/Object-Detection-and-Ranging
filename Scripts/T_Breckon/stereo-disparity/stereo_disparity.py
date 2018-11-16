@@ -29,7 +29,7 @@ directory_to_cycle_right = "right-images";   # edit this if needed
 
 skip_forward_file_pattern = ""; # set to timestamp to skip forward to
 
-crop_disparity = False; # display full or cropped disparity image
+crop_disparity = True; # display full or cropped disparity image
 pause_playback = False; # pause until key press after each image
 
 #####################################################################
