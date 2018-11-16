@@ -30,7 +30,7 @@ def main():
 
     paths = [params.DATA_training_path_neg, params.DATA_training_path_pos]
 
-    # build a lisyt of class names automatically from our dictionary of class (name,number) pairs
+    # build a list of class names automatically from our dictionary of class (name,number) pairs
 
     class_names = [get_class_name(class_number) for class_number in range(len(params.DATA_CLASS_NAMES))]
 
@@ -59,6 +59,7 @@ def main():
 
     print("Computing HOG descriptors...") # for each training image
     start = cv2.getTickCount()
+    #each HoG descriptor is stored in its respective img_data instance
     [img_data.compute_hog_descriptor() for img_data in imgs_data]
     print_duration(start)
 
@@ -74,11 +75,11 @@ def main():
     svm.setType(cv2.ml.SVM_C_SVC)           # change this for multi-class
     svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type (alteratives exist)
 
-    # compile samples (i.e. visual word histograms) for each training image
+    # get hog descriptor for each image and store in single global array
 
     samples = get_hog_descriptors(imgs_data)
 
-    # get class label for each training image
+    # get class label for each training image (i.e. 0 for other, 1 for pedestrian... can extend)
 
     class_labels = get_class_labels(imgs_data);
 
@@ -92,7 +93,7 @@ def main():
 
     svm.trainAuto(samples, cv2.ml.ROW_SAMPLE, class_labels, kFold = 10, balanced = True);
 
-    # save the tained SVM to file so that we can load it again for testing / detection
+    # save the trained SVM to file so that we can load it again for testing / detection
 
     svm.save(params.HOG_SVM_PATH)
 

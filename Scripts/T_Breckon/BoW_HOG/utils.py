@@ -18,10 +18,12 @@ import random
 
 ################################################################################
 # global flags to facilitate output of additional info per stage/function
+# set these to false to speed up times (i.e. you don't need to see
+# images/patches/prints)
 
 show_additional_process_information = False;
-show_images_as_they_are_loaded = True;
-show_images_as_they_are_sampled = True;
+show_images_as_they_are_loaded = False;
+show_images_as_they_are_sampled = False;
 
 ################################################################################
 
@@ -123,7 +125,11 @@ class ImageData(object):
 
         # generate the HOG descriptors for a given image
 
+        # resizes the image to ensure that all images are the same size.
+
         img_hog = cv2.resize(self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation = cv2.INTER_AREA)
+
+        # computes hog descriptor utilizing built-in openCV
 
         self.hog_descriptor = self.hog.compute(img_hog)
 
@@ -232,6 +238,8 @@ def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
 
             patch = img[patch_start_h:patch_start_h + patch_height, patch_start_w:patch_start_w + patch_width]
 
+            # show image patches
+
             if (show_images_as_they_are_sampled):
                 cv2.imshow("patch", patch);
                 cv2.waitKey(5);
@@ -257,7 +265,7 @@ def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=Fal
 
         if (show_images_as_they_are_loaded):
             cv2.imshow("example", img);
-            cv2.waitKey(5);
+            cv2.waitKey(5)
 
         # generate up to N sample patches for each sample image
         # if zero samples is specified then generate_patches just returns
