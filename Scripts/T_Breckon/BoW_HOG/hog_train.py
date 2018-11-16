@@ -116,7 +116,7 @@ def main():
 
     print_duration(start)
 
-    print(("Finished training BOW detector. {}".format(format_time(get_elapsed_time(program_start)))))
+    print(("Finished training HoG detector. {}".format(format_time(get_elapsed_time(program_start)))))
 
 ################################################################################
 

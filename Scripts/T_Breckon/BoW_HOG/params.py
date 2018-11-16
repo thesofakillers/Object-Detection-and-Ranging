@@ -56,7 +56,7 @@ DATA_CLASS_NAMES = {
 ################################################################################
 # settings for BOW - Bag of (visual) Word - approaches
 
-BOW_SVM_PATH = "svm_bow.xml"
+BOW_SVM_PATH = "../Write/svm_bow.xml"
 BOW_DICT_PATH = "bow_dictionary.npy"
 
 BOW_dictionary_size = 512;  # in general, larger = better performance, but potentially slower
@@ -119,7 +119,7 @@ MATCHER = cv2.FlannBasedMatcher(_index_params, _search_params)
 ################################################################################
 # settings for HOG approaches
 
-HOG_SVM_PATH = "svm_hog.xml"
+HOG_SVM_PATH = "../Write/svm_hog.xml"
 
 HOG_SVM_kernel = cv2.ml.SVM_LINEAR; # see opencv manual for other options
 HOG_SVM_max_training_iterations = 500; # stop training after max iterations

@@ -104,12 +104,12 @@ for filename in sorted(os.listdir(directory_to_cycle)):
                         cv2.imshow('current window',window)
                         key = cv2.waitKey(10) # wait 10ms
 
-                    # for each window region get the BoW feature point descriptors
+                    # for each window region get the HoG feature point descriptors
 
                     img_data = ImageData(window)
                     img_data.compute_hog_descriptor();
 
-                    # generate and classify each window by constructing a BoW
+                    # generate and classify each window by constructing a HoG
                     # histogram and passing it through the SVM classifier
 
                     if img_data.hog_descriptor is not None:
@@ -134,6 +134,8 @@ for filename in sorted(os.listdir(directory_to_cycle)):
                                 cv2.rectangle(rect_img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
                                 cv2.imshow('current scale',rect_img)
                                 cv2.waitKey(40)
+
+                            #append the rect to the list of detections
 
                             rect *= (1.0 / current_scale)
                             detections.append(rect)
