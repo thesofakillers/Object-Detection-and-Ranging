@@ -18,7 +18,8 @@ directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 
 # set this to a file timestamp to start from (empty is first example - outside lab)
-skip_forward_file_pattern = "1506943191.487683"  # set to timestamp to skip forward to
+# set to timestamp to skip forward to
+skip_forward_file_pattern = "1506943191.487683"
 
 # resolve full directory location of data set for left / right images
 full_path_directory_left = os.path.join(
@@ -36,7 +37,7 @@ max_disparity = 128
 crop_disparity = True  # display full or cropped disparity image
 pause_playback = False  # pause until key press after each image
 
-#create stereo processor from OpenCv
+# create stereo processor from OpenCv
 stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 
 ###########################Camera Settings########################
@@ -44,20 +45,45 @@ camera_focal_length_px = 399.9745178222656         # focal length in pixels
 stereo_camera_baseline_m = 0.2090607502     # camera baseline in metres
 
 ###############################Functions##########################
+
+
 def compute_depth(disparity, focal_length, distance_between_cameras):
-    return ((focal_length *distance_between_cameras) / disparity)
+    """
+    Computes depth in meters
+    Input:
+    -Disparity in pixels
+    -Focal Length in pixels
+    -Distance between cameras in meters
+    Output:
+    -Depth in meters
+    """
+    return ((focal_length * distance_between_cameras) / disparity)
+
 
 def check_skip(timestamp, filename):
-    # skip forward to start a file we specify by timestamp (if this is set)
+    """
+    Checks if a timestamp has been given and whether the timestamp corresponds
+    to the given filename.
+
+    Returns True if this condition is met and False Otherwise"
+    """
     if ((len(timestamp) > 0) and not(timestamp in filename)):
         return True
     elif ((len(timestamp) > 0) and (timestamp in filename)):
         return False
 
+
+def join_paths_both_sides(directory_left, filename_left, directory_right, filename_right):
+    "Given directory and filename, joins them into the complete path to the file"
+    full_path_filename_left = os.path.join(
+        full_path_directory_left, filename_left)
+    full_path_filename_right = os.path.join(
+        full_path_directory_right, filename_right)
+    return full_path_filename_left, full_path_filename_right
+
+
 #################################Main############################
 for filename_left in left_file_list:
-    print("HELLO", skip_forward_file_pattern)
-
     # skipping if requested
     if check_skip(skip_forward_file_pattern, filename_left):
         continue
@@ -66,10 +92,9 @@ for filename_left in left_file_list:
 
     # from the left image filename get the correspondoning right image
     filename_right = filename_left.replace("_L", "_R")
-    full_path_filename_left = os.path.join(
-        full_path_directory_left, filename_left)
-    full_path_filename_right = os.path.join(
-        full_path_directory_right, filename_right)
+    full_path_filenames = join_paths_both_sides(full_path_directory_left, filename_left,
+                                                full_path_directory_right, filename_right)
+    full_path_filename_left, full_path_filename_right = full_path_filenames
 
     # for sanity print out these filenames
     print(full_path_filename_left)
@@ -127,7 +152,8 @@ for filename_left in left_file_list:
             disparity_scaled = disparity_scaled[0:390, 135:width]
 
         # compute depth from disparity
-        depth = compute_depth(disparity_scaled, camera_focal_length_px, stereo_camera_baseline_m)
+        depth = compute_depth(
+            disparity_scaled, camera_focal_length_px, stereo_camera_baseline_m)
         print(depth[54, 20])
 
         # display image (scaling it to the full 0->255 range based on the number
