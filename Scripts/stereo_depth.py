@@ -82,12 +82,38 @@ def join_paths_both_sides(directory_left, filename_left, directory_right, filena
     return full_path_filename_left, full_path_filename_right
 
 
-def convert_to_color(grey_images):
-    "Given an array of greyscale images, returns an array of color images"
-    colored_images = []
-    for image in grey_images:
-        colored_images.append(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-    return colored_images
+def convert_to_grayscale(color_images):
+    "Given an array of color images, returns an array of grayscale images"
+    gray_images = []
+    for image in color_images:
+        gray_images.append(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    return gray_images
+
+
+def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, noise_filter, crop_boolean):
+    # compute disparity image from undistorted and rectified stereo images
+    # (which for reasons best known to the OpenCV developers is returned scaled by 16)
+    disparity = stereoProcessor.compute(gray_left_image, gray_right_image)
+
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!NEEDS MORE INVESTIGATING!!!!!!!!!!!!!!!!!!!!!!!!!
+    # filter out noise and speckles (adjust parameters as needed)
+    cv2.filterSpeckles(disparity, 0, 4000, maximum_disparity - noise_filter)
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    # threshold the disparity so that it goes from 0 to max disparity
+    _, disparity = cv2.threshold(
+        disparity, 0, maximum_disparity * 16, cv2.THRESH_TOZERO)
+
+    # scale the disparity to 8-bit for viewing
+    # divide by 16 and convert to 8-bit image (then range of values should
+    disparity_scaled = (disparity / 16.).astype(np.uint8)
+
+    # crop area not seen by *both* cameras and and area with car bonnet
+    if (crop_boolean):
+        width = np.size(disparity_scaled, 1)
+        disparity_scaled = disparity_scaled[0:390, 135:width]
+
+    return disparity_scaled
 
 
 #################################Main############################
@@ -125,47 +151,27 @@ for filename_left in left_file_list:
 
         # remember to convert to grayscale (as the disparity matching works on grayscale)
         # N.B. need to do for both as both are 3-channel images
-        grayL, grayR = convert_to_color([imgL, imgR])
+        grayL, grayR = convert_to_grayscale([imgL, imgR])
 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!NEED TO IMPROVE/LOOK INTO!!!!!!!!!!!!!!!!!!!!!!
         # perform preprocessing - raise to the power, as this subjectively appears
         # to improve subsequent disparity calculation
         grayL = np.power(grayL, 0.75).astype('uint8')
         grayR = np.power(grayR, 0.75).astype('uint8')
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        # compute disparity image from undistorted and rectified stereo images
-        # that we have loaded
-        # (which for reasons best known to the OpenCV developers is returned scaled by 16)
-        disparity = stereoProcessor.compute(grayL, grayR)
+        #compute disparity
+        disparity = compute_disparity(
+            grayL, grayR, max_disparity, 5, crop_disparity)
 
-        # filter out noise and speckles (adjust parameters as needed)
-        dispNoiseFilter = 5  # increase for more agressive filtering
-        cv2.filterSpeckles(disparity, 0, 4000, max_disparity - dispNoiseFilter)
-
-        # scale the disparity to 8-bit for viewing
-        # divide by 16 and convert to 8-bit image (then range of values should
-        # be 0 -> max_disparity) but in fact is (-1 -> max_disparity - 1)
-        # so we fix this also using a initial threshold between 0 and max_disparity
-        # as disparity=-1 means no disparity available
-        _, disparity = cv2.threshold(
-            disparity, 0, max_disparity * 16, cv2.THRESH_TOZERO)
-        disparity_scaled = (disparity / 16.).astype(np.uint8)
-
-        # crop disparity to chop out left part where there are with no disparity
-        # as this area is not seen by both cameras and also
-        # chop out the bottom area (where we see the front of car bonnet)
-        if (crop_disparity):
-            width = np.size(disparity_scaled, 1)
-            disparity_scaled = disparity_scaled[0:390, 135:width]
+        #display image (scaling it to the full 0->255 range)
+        cv2.imshow("disparity", (disparity*(256/max_disparity)).astype(np.uint8))
 
         # compute depth from disparity
         depth = compute_depth(
-            disparity_scaled, camera_focal_length_px, stereo_camera_baseline_m)
+            disparity, camera_focal_length_px, stereo_camera_baseline_m)
         print(depth[54, 20])
 
-        # display image (scaling it to the full 0->255 range based on the number
-        # of disparities in use for the stereo part)
-        # cv2.imshow("disparity", (disparity_scaled *
-        #                          (256. / max_disparity)).astype(np.uint8))
 
         #cv2.imshow("depth", depth.astype(np.uint8))
 
