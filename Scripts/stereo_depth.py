@@ -82,6 +82,14 @@ def join_paths_both_sides(directory_left, filename_left, directory_right, filena
     return full_path_filename_left, full_path_filename_right
 
 
+def convert_to_color(grey_images):
+    "Given an array of greyscale images, returns an array of color images"
+    colored_images = []
+    for image in grey_images:
+        colored_images.append(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    return colored_images
+
+
 #################################Main############################
 for filename_left in left_file_list:
     # skipping if requested
@@ -108,18 +116,16 @@ for filename_left in left_file_list:
         # N.B. despite one being grayscale both are in fact stored as 3-channel
         # RGB images so load both as such
         imgL = cv2.imread(full_path_filename_left, cv2.IMREAD_COLOR)
-        #cv2.imshow('left image', imgL)
+        cv2.imshow('left image', imgL)
 
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
-        #cv2.imshow('right image', imgR)
+        cv2.imshow('right image', imgR)
 
-        print("-- files loaded successfully")
-        print()
+        print("-- files loaded successfully\n")
 
         # remember to convert to grayscale (as the disparity matching works on grayscale)
         # N.B. need to do for both as both are 3-channel images
-        grayL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
-        grayR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+        grayL, grayR = convert_to_color([imgL, imgR])
 
         # perform preprocessing - raise to the power, as this subjectively appears
         # to improve subsequent disparity calculation
