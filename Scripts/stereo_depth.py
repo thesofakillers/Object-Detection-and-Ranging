@@ -19,7 +19,7 @@ directory_to_cycle_right = "right-images"   # edit this if needed
 
 # set this to a file timestamp to start from (empty is first example - outside lab)
 # set to timestamp to skip forward to
-skip_forward_file_pattern = "1506943191.487683"
+skip_forward_file_pattern = ""
 
 # resolve full directory location of data set for left / right images
 full_path_directory_left = os.path.join(
@@ -91,6 +91,12 @@ def convert_to_grayscale(color_images):
 
 
 def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, noise_filter, crop_boolean):
+    """
+    Input: Grayscale Left & Right Images, Maximum Disparity Value
+    -Noise filter: increase to be more aggressive
+    -Crop_Boolean: set to True if you wish to crop unnescessary areas
+    Output: Disparity between images, scaled appropriately
+    """
     # compute disparity image from undistorted and rectified stereo images
     # (which for reasons best known to the OpenCV developers is returned scaled by 16)
     disparity = stereoProcessor.compute(gray_left_image, gray_right_image)
@@ -116,6 +122,15 @@ def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, nois
     return disparity_scaled
 
 
+def click_event(event, x, y, flags, param):
+    """
+    listens for mouse clicks and prints the depth at that mouse click location
+    """
+    depth = param
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print(depth[y, x])
+
+
 #################################Main############################
 for filename_left in left_file_list:
     # skipping if requested
@@ -137,7 +152,6 @@ for filename_left in left_file_list:
     # check the file is a PNG file (left) and check a correspondoning right image
     # actually exists
     if ('.png' in filename_left) and (os.path.isfile(full_path_filename_right)):
-
         # read left and right images and display in windows
         # N.B. despite one being grayscale both are in fact stored as 3-channel
         # RGB images so load both as such
@@ -160,20 +174,21 @@ for filename_left in left_file_list:
         grayR = np.power(grayR, 0.75).astype('uint8')
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        #compute disparity
+        # compute disparity
         disparity = compute_disparity(
             grayL, grayR, max_disparity, 5, crop_disparity)
 
-        #display image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity*(256/max_disparity)).astype(np.uint8))
+        # display image (scaling it to the full 0->255 range)
+        cv2.imshow("disparity", (disparity *
+                                 (256 / max_disparity)).astype(np.uint8))
 
         # compute depth from disparity
         depth = compute_depth(
             disparity, camera_focal_length_px, stereo_camera_baseline_m)
-        print(depth[54, 20])
 
+        # #listen for mouse clicks and print depth where clicked
+        # cv2.setMouseCallback("disparity", click_event, param = depth)
 
-        #cv2.imshow("depth", depth.astype(np.uint8))
 
         # keyboard input for exit (as standard), save disparity and cropping
         # exit - x
