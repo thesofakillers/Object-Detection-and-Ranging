@@ -22,7 +22,7 @@ def hog_detect(image, rescaling_factor, svm_object, scan_boolean):
     # for a range of different image scales in an image pyramid
     current_scale = -1
     detections = []
-
+    detection_classes = []
     ################################ for each re-scale of the image
 
     for resized in pyramid(image, scale=rescaling_factor):
@@ -72,7 +72,8 @@ def hog_detect(image, rescaling_factor, svm_object, scan_boolean):
                     print(result)
 
                     # if we get a detection, then record it
-                    if result[0] == params.DATA_CLASS_NAMES["pedestrain"]:
+                    class_number = result[0]
+                    if class_number == params.DATA_CLASS_NAMES["pedestrian"]:
 
                         # store rect as (x1, y1) (x2,y2) pair
                         rect = np.float32([x, y, x + window_size[0], y + window_size[1]])
@@ -81,17 +82,24 @@ def hog_detect(image, rescaling_factor, svm_object, scan_boolean):
                         if (scan_boolean):
                             cv2.rectangle(rect_img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
                             cv2.imshow('current scale',rect_img)
-                            cv2.waitKey(40)
+                            cv2.waitKey(10)
 
                         #append the rect to the list of detections
-
                         rect *= (1.0 / current_scale)
                         detections.append(rect)
+                        #append class number to list of class numbers
+                        detection_classes.append(class_number)
+
 
             ########################################################
-
-    # For the overall set of detections (over all scales) perform
-    # non maximal suppression (i.e. remove overlapping boxes etc).
-    detections = non_max_suppression_fast(np.int32(detections), 0.4)
-
-    return detections
+    #converting to numpy.arrays
+    detections = np.array(detections)
+    detection_classes = np.array(detection_classes)
+    # remove overlapping boxes.
+    # get indices of surviving boxes
+    surviving_indeces = non_max_suppression_fast(np.int32(detections), 0.4)
+    # keep only surviving detections
+    detections = detections[surviving_indeces].astype("int")
+    detection_classes = detection_classes[surviving_indeces]
+    #return detection rects and respective detection_classes
+    return detections, detection_classes

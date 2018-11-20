@@ -125,6 +125,6 @@ def non_max_suppression_fast(boxes, overlapThresh):
 
     # return only the bounding boxes that were picked using the
     # integer data type
-    return boxes[pick].astype("int")
+    return pick
 
 ################################################################################

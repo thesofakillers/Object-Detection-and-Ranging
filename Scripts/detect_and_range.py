@@ -233,8 +233,8 @@ for filename_left in left_file_list:
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
-        #detect object classes and draw them onto image
-        detections = hog_detect(imgL, 1.25, svm, False)
+        #get detections as rectangles and their respective classes
+        detections, class_numbers = hog_detect(imgL, 1.25, svm, False)
 
         #<section>-------------------Display-----------
         #draw detections onto imgL
