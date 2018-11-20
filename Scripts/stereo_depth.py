@@ -12,6 +12,7 @@ import cv2
 import os
 import numpy as np
 
+
 ###########################Directory Settings########################
 master_path_to_dataset = "../Data/TTBB-durham-02-10-17-sub10"  # where is the data
 directory_to_cycle_left = "left-images"     # edit this if needed
@@ -30,23 +31,21 @@ full_path_directory_right = os.path.join(
 # get a list of the left image files and sort them (by timestamp in filename)
 left_file_list = sorted(os.listdir(full_path_directory_left))
 
+
 #######################Disparity Settings##########################
 # setup the disparity stereo processor to find a maximum of 128 disparity values
 max_disparity = 128
 
-crop_disparity = True  # display full or cropped disparity image
-pause_playback = False  # pause until key press after each image
-
 # create stereo processor from OpenCv
 stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
+
 
 ###########################Camera Settings########################
 camera_focal_length_px = 399.9745178222656         # focal length in pixels
 stereo_camera_baseline_m = 0.2090607502     # camera baseline in metres
 
+
 ###############################Functions##########################
-
-
 def compute_depth(disparity, focal_length, distance_between_cameras):
     """
     Computes depth in meters
@@ -90,11 +89,10 @@ def convert_to_grayscale(color_images):
     return gray_images
 
 
-def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, noise_filter, crop_boolean):
+def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, noise_filter, width):
     """
     Input: Grayscale Left & Right Images, Maximum Disparity Value
     -Noise filter: increase to be more aggressive
-    -Crop_Boolean: set to True if you wish to crop unnescessary areas
     Output: Disparity between images, scaled appropriately
     """
     # compute disparity image from undistorted and rectified stereo images
@@ -115,9 +113,7 @@ def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, nois
     disparity_scaled = (disparity / 16.).astype(np.uint8)
 
     # crop area not seen by *both* cameras and and area with car bonnet
-    if (crop_boolean):
-        width = np.size(disparity_scaled, 1)
-        disparity_scaled = disparity_scaled[0:390, 135:width]
+    disparity_scaled = crop_image(disparity_scaled, 0, 390, 135, width)
 
     return disparity_scaled
 
@@ -129,6 +125,14 @@ def click_event(event, x, y, flags, param):
     depth = param
     if event == cv2.EVENT_LBUTTONDOWN:
         print(depth[y, x])
+
+
+def crop_image(image, start_height, end_height, start_width, end_width):
+    """
+    Crops an image according to passed start and end heights and widths with
+    the origin placed at the image top left
+    """
+    return image[start_height:end_height, start_width:end_width]
 
 
 #################################Main############################
@@ -156,11 +160,8 @@ for filename_left in left_file_list:
         # N.B. despite one being grayscale both are in fact stored as 3-channel
         # RGB images so load both as such
         imgL = cv2.imread(full_path_filename_left, cv2.IMREAD_COLOR)
-        cv2.imshow('left image', imgL)
 
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
-        cv2.imshow('right image', imgR)
-
         print("-- files loaded successfully\n")
 
         # remember to convert to grayscale (as the disparity matching works on grayscale)
@@ -174,40 +175,32 @@ for filename_left in left_file_list:
         grayR = np.power(grayR, 0.75).astype('uint8')
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+        original_width = np.size(grayL, 1)
         # compute disparity
         disparity = compute_disparity(
-            grayL, grayR, max_disparity, 5, crop_disparity)
+            grayL, grayR, max_disparity, 5, original_width)
 
         # display image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity *
-                                 (256 / max_disparity)).astype(np.uint8))
+        cv2.imshow("disparity", (disparity
+                                 * (256 / max_disparity)).astype(np.uint8))
 
         # compute depth from disparity
         depth = compute_depth(
             disparity, camera_focal_length_px, stereo_camera_baseline_m)
 
+        # cropping left image to match disparity & depth sizes
+        imgL = crop_image(imgL, 0, 390, 135, original_width)
+        # showing left image
+        cv2.imshow('left image', imgL)
+
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)
 
-
-        # keyboard input for exit (as standard), save disparity and cropping
-        # exit - x
-        # save - s
-        # crop - c
-        # pause - space
-
+        # keyboard input for exit (as standard)
         # wait 40ms (i.e. 1000ms / 25 fps = 40 ms)
         key = cv2.waitKey(40 * (not(pause_playback))) & 0xFF
         if (key == ord('x')):       # exit
             break  # exit
-        elif (key == ord('s')):     # save
-            cv2.imwrite("sgbm-disparty.png", disparity_scaled)
-            cv2.imwrite("left.png", imgL)
-            cv2.imwrite("right.png", imgR)
-        elif (key == ord('c')):     # crop
-            crop_disparity = not(crop_disparity)
-        elif (key == ord(' ')):     # pause (on next frame)
-            pause_playback = not(pause_playback)
     else:
         print("-- files skipped (perhaps one is missing or not PNG)")
         print()
