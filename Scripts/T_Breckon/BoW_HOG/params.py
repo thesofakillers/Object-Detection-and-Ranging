@@ -50,7 +50,7 @@ DATA_training_sample_count_pos = 5;
 
 DATA_CLASS_NAMES = {
     "other": 0,
-    "pedestrain": 1
+    "pedestrian": 1
 }
 
 ################################################################################
