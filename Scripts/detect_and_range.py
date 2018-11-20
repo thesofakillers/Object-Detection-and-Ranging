@@ -202,8 +202,7 @@ for filename_left in left_file_list:
         if (key == ord('x')):       # exit
             break  # exit
     else:
-        print("-- files skipped (perhaps one is missing or not PNG)")
-        print()
+        print("-- files skipped (perhaps one is missing or not PNG)\n")
 
 # close all windows
 cv2.destroyAllWindows()
