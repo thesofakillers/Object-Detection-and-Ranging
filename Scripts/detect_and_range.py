@@ -1,8 +1,8 @@
 #####################################################################
 """
-Computes SGBM disparity and equivalent depth of incoming stereo images
+Detects pedestrians and estimates the distance to them using HoG, SVM and SGBM.
 
-Heavily Based off of stereo_disparity.py and stereo_to_3d.py by
+Heavily Based off of scripts shown in /T_Breckon/ made by
 Prof Toby Breckon of Durham University
 
 by 2018/2019 Durham Uni CS candidate dzgf42
@@ -11,7 +11,10 @@ by 2018/2019 Durham Uni CS candidate dzgf42
 import cv2
 import os
 import numpy as np
-
+import math
+import T_Breckon.BoW_HOG.params as params
+from T_Breckon.BoW_HOG.utils import *
+from T_Breckon.BoW_HOG.sliding_window import *
 
 ###########################Directory Settings########################
 master_path_to_dataset = "../Data/TTBB-durham-02-10-17-sub10"  # where is the data
@@ -198,7 +201,7 @@ for filename_left in left_file_list:
 
         # keyboard input for exit (as standard)
         # wait 40ms (i.e. 1000ms / 25 fps = 40 ms)
-        key = cv2.waitKey(40 * (not(pause_playback))) & 0xFF
+        key = cv2.waitKey(40) & 0xFF
         if (key == ord('x')):       # exit
             break  # exit
     else:
