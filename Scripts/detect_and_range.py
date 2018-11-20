@@ -7,7 +7,7 @@ Prof Toby Breckon of Durham University
 
 by 2018/2019 Durham Uni CS candidate dzgf42
 """
-#############################Imports#################################
+#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import cv2
 import os
 import numpy as np
@@ -15,8 +15,10 @@ import math
 import T_Breckon.BoW_HOG.params as params
 from T_Breckon.BoW_HOG.utils import *
 from T_Breckon.BoW_HOG.sliding_window import *
+#</section>End of Imports
 
-###########################Directory Settings########################
+
+#<section>~~~~~~~~~~~~~~~~~~~~~~~Directory Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 master_path_to_dataset = "../Data/TTBB-durham-02-10-17-sub10"  # where is the data
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
@@ -34,21 +36,25 @@ full_path_directory_right = os.path.join(
 # get a list of the left image files and sort them (by timestamp in filename)
 left_file_list = sorted(os.listdir(full_path_directory_left))
 
+#</section>End of Directory Settings
 
-#######################Disparity Settings##########################
+
+#<section>~~~~~~~~~~~~~~~~~~~~~~~Disparity Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # setup the disparity stereo processor to find a maximum of 128 disparity values
 max_disparity = 128
 
 # create stereo processor from OpenCv
 stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
+#</section>End of Disparity Settings
 
 
-###########################Camera Settings########################
+#<section>~~~~~~~~~~~~~~~~~~~~~~~Camera Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 camera_focal_length_px = 399.9745178222656         # focal length in pixels
 stereo_camera_baseline_m = 0.2090607502     # camera baseline in metres
+#</section>End of Camera Settings
 
 
-###############################Functions##########################
+#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def compute_depth(disparity, focal_length, distance_between_cameras):
     """
     Computes depth in meters
@@ -136,9 +142,10 @@ def crop_image(image, start_height, end_height, start_width, end_width):
     the origin placed at the image top left
     """
     return image[start_height:end_height, start_width:end_width]
+#</section>End of Functions Section
 
 
-#################################Main############################
+#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 for filename_left in left_file_list:
     # skipping if requested
     if check_skip(skip_forward_file_pattern, filename_left):
@@ -209,5 +216,4 @@ for filename_left in left_file_list:
 
 # close all windows
 cv2.destroyAllWindows()
-
-#####################################################################
+#</section>
