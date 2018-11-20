@@ -132,20 +132,31 @@ def convert_to_grayscale(color_images):
     return gray_images
 
 
-def compute_disparity(gray_left_image, gray_right_image, maximum_disparity, noise_filter, width):
+def compute_disparity(left_image, right_image, maximum_disparity, noise_filter, width):
     """
     Input: Grayscale Left & Right Images, Maximum Disparity Value
     -Noise filter: increase to be more aggressive
     Output: Disparity between images, scaled appropriately
     """
+    # remember to convert to grayscale (as the disparity matching works on grayscale)
+    # N.B. need to do for both as both are 3-channel images
+    grayL, grayR = convert_to_grayscale([left_image, right_image])
+
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!NEED TO IMPROVE/LOOK INTO!!!!!!!!!!!!!!!!!!!!!!
+    # perform preprocessing - raise to the power, as this subjectively appears
+    # to improve subsequent disparity calculation
+    grayL = np.power(grayL, 0.75).astype('uint8')
+    grayR = np.power(grayR, 0.75).astype('uint8')
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     # compute disparity image from undistorted and rectified stereo images
     # (which for reasons best known to the OpenCV developers is returned scaled by 16)
-    disparity = stereoProcessor.compute(gray_left_image, gray_right_image)
+    disparity = stereoProcessor.compute(grayL, grayR)
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!NEEDS MORE INVESTIGATING!!!!!!!!!!!!!!!!!!!!!!!!!
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!NEEDS MORE INVESTIGATING!!!!!!!!!!!!!!!!!!!!!!!!!
     # filter out noise and speckles (adjust parameters as needed)
     cv2.filterSpeckles(disparity, 0, 4000, maximum_disparity - noise_filter)
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # threshold the disparity so that it goes from 0 to max disparity
     _, disparity = cv2.threshold(
@@ -181,6 +192,7 @@ def crop_image(image, start_height, end_height, start_width, end_width):
 
 #<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 for filename_left in left_file_list:
+    #<section>---------------Directory Checks---------------
     # skipping if requested
     if check_skip(skip_forward_file_pattern, filename_left):
         continue
@@ -196,7 +208,7 @@ for filename_left in left_file_list:
     # for sanity print out these filenames
     print(full_path_filename_left)
     print(full_path_filename_right)
-
+    #</section>-----------End of Directory Checks-----------
     # check the file is a PNG file (left) and check a correspondoning right image
     # actually exists
     if ('.png' in filename_left) and (os.path.isfile(full_path_filename_right)):
@@ -204,25 +216,15 @@ for filename_left in left_file_list:
         # N.B. despite one being grayscale both are in fact stored as 3-channel
         # RGB images so load both as such
         imgL = cv2.imread(full_path_filename_left, cv2.IMREAD_COLOR)
-
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
         print("-- files loaded successfully\n")
 
-        # remember to convert to grayscale (as the disparity matching works on grayscale)
-        # N.B. need to do for both as both are 3-channel images
-        grayL, grayR = convert_to_grayscale([imgL, imgR])
+        #compute image width
+        original_width = np.size(imgL, 1)
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!NEED TO IMPROVE/LOOK INTO!!!!!!!!!!!!!!!!!!!!!!
-        # perform preprocessing - raise to the power, as this subjectively appears
-        # to improve subsequent disparity calculation
-        grayL = np.power(grayL, 0.75).astype('uint8')
-        grayR = np.power(grayR, 0.75).astype('uint8')
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        original_width = np.size(grayL, 1)
         # compute disparity
         disparity = compute_disparity(
-            grayL, grayR, max_disparity, 5, original_width)
+            imgL, imgR, max_disparity, 5, original_width)
 
         # compute depth from disparity
         depth = compute_depth(
