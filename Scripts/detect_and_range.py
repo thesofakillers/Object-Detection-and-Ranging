@@ -12,9 +12,9 @@ import cv2
 import os
 import numpy as np
 import math
+from hog_detector import hog_detect
 import T_Breckon.BoW_HOG.params as params
-from T_Breckon.BoW_HOG.utils import *
-from T_Breckon.BoW_HOG.sliding_window import *
+#from T_Breckon.BoW_HOG.sliding_window import *
 #</section>End of Imports
 
 
@@ -46,6 +46,40 @@ max_disparity = 128
 # create stereo processor from OpenCv
 stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 #</section>End of Disparity Settings
+
+
+#<section>~~~~~~~~~~~~~~~~~~~~Trained Model Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#specify classifier used as a string. Options include:
+#-"SVM"
+#-"Foo" (haven't done anything else yet)
+classifier_model = "SVM"
+#specify classifier used as a string. Options include:
+descriptor_used = "HoG"
+
+if classifier_model == "SVM":
+    if descriptor_used == "HoG":
+        try:
+            #load SVM object once, outside of loop
+            svm = cv2.ml.SVM_load(params.HOG_SVM_PATH)
+        except:
+            print("Missing files - SVM!");
+            exit();
+#     elif descriptor_used == "foo":
+#         try:
+#             svm = cv2.ml.SVM_load(params.FOO_SVM_PATH)
+#         except:
+#             print("Missing files - SVM!");
+#             exit();
+#         .
+#         .
+#         .
+# elif classifier_model =="FOO":
+#     if descriptor_used == ..etc
+#     .
+#     .
+#     .
+#     etc
+#</section>
 
 
 #<section>~~~~~~~~~~~~~~~~~~~~~~~Camera Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -190,27 +224,35 @@ for filename_left in left_file_list:
         disparity = compute_disparity(
             grayL, grayR, max_disparity, 5, original_width)
 
-        # display image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity
-                                 * (256 / max_disparity)).astype(np.uint8))
-
         # compute depth from disparity
         depth = compute_depth(
             disparity, camera_focal_length_px, stereo_camera_baseline_m)
 
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
-        # showing left image
-        cv2.imshow('left image', imgL)
+
+        #detect object classes and draw them onto image
+        detections = hog_detect(imgL, 1.25, svm, False)
+
+        #<section>-------------------Display-----------
+        #draw detections onto imgL
+        for rect in detections:
+            cv2.rectangle(imgL, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
+
+        #show left color image
+        cv2.imshow('detected objects',imgL)
+
+        #show disparity image (scaling it to the full 0->255 range)
+        cv2.imshow("disparity", (disparity
+                                 * (256 / max_disparity)).astype(np.uint8))
+
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)
 
-        # keyboard input for exit (as standard)
         # wait 40ms (i.e. 1000ms / 25 fps = 40 ms)
-        key = cv2.waitKey(40) & 0xFF
-        if (key == ord('x')):       # exit
-            break  # exit
+        cv2.waitKey(40) & 0xFF
+        #</section>-------End of Display Section--------
     else:
         print("-- files skipped (perhaps one is missing or not PNG)\n")
 
