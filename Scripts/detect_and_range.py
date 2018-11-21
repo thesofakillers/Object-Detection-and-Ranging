@@ -7,18 +7,20 @@ Prof Toby Breckon of Durham University
 
 by 2018/2019 Durham Uni CS candidate dzgf42
 """
-#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import cv2
 import os
 import numpy as np
 import math
 from hog_detector import hog_detect
 import T_Breckon.BoW_HOG.params as params
-#from T_Breckon.BoW_HOG.sliding_window import *
-#</section>End of Imports
+import T_Breckon.BoW_HOG.utils as utils
+import warnings
+warnings.filterwarnings("error")
+# </section>End of Imports
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~~~~Directory Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~Directory Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 master_path_to_dataset = "../Data/TTBB-durham-02-10-17-sub10"  # where is the data
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
@@ -36,34 +38,34 @@ full_path_directory_right = os.path.join(
 # get a list of the left image files and sort them (by timestamp in filename)
 left_file_list = sorted(os.listdir(full_path_directory_left))
 
-#</section>End of Directory Settings
+# </section>End of Directory Settings
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~~~~Disparity Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~Disparity Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # setup the disparity stereo processor to find a maximum of 128 disparity values
 max_disparity = 128
 
 # create stereo processor from OpenCv
 stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
-#</section>End of Disparity Settings
+# </section>End of Disparity Settings
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~Trained Model Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#specify classifier used as a string. Options include:
-#-"SVM"
-#-"Foo" (haven't done anything else yet)
+# <section>~~~~~~~~~~~~~~~~~~~~Trained Model Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# specify classifier used as a string. Options include:
+# -"SVM"
+# -"Foo" (haven't done anything else yet)
 classifier_model = "SVM"
-#specify classifier used as a string. Options include:
+# specify classifier used as a string. Options include:
 descriptor_used = "HoG"
 
 if classifier_model == "SVM":
     if descriptor_used == "HoG":
         try:
-            #load SVM object once, outside of loop
+            # load SVM object once, outside of loop
             svm = cv2.ml.SVM_load(params.HOG_SVM_PATH)
         except:
-            print("Missing files - SVM!");
-            exit();
+            print("Missing files - SVM!")
+            exit()
 #     elif descriptor_used == "foo":
 #         try:
 #             svm = cv2.ml.SVM_load(params.FOO_SVM_PATH)
@@ -79,29 +81,16 @@ if classifier_model == "SVM":
 #     .
 #     .
 #     etc
-#</section>
+# </section>
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~~~~Camera Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~Camera Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 camera_focal_length_px = 399.9745178222656         # focal length in pixels
 stereo_camera_baseline_m = 0.2090607502     # camera baseline in metres
-#</section>End of Camera Settings
+# </section>End of Camera Settings
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def compute_depth(disparity, focal_length, distance_between_cameras):
-    """
-    Computes depth in meters
-    Input:
-    -Disparity in pixels
-    -Focal Length in pixels
-    -Distance between cameras in meters
-    Output:
-    -Depth in meters
-    """
-    return ((focal_length * distance_between_cameras) / disparity)
-
-
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def check_skip(timestamp, filename):
     """
     Checks if a timestamp has been given and whether the timestamp corresponds
@@ -187,12 +176,50 @@ def crop_image(image, start_height, end_height, start_width, end_width):
     the origin placed at the image top left
     """
     return image[start_height:end_height, start_width:end_width]
-#</section>End of Functions Section
 
 
-#<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def compute_depth(disparity, focal_length, distance_between_cameras):
+    """
+    Computes depth in meters
+    Input:
+    -Disparity in pixels
+    -Focal Length in pixels
+    -Distance between cameras in meters
+    Output:
+    -Depth in meters
+    """
+    with np.errstate(divide='ignore'):
+        depth = (focal_length * distance_between_cameras) / disparity
+    return depth
+
+
+def compute_single_depth(rectangle, disparity_image, focal_length, distance_between_cameras):
+    """
+    Given a rectangular area and a disparity image, estimates the general Depth
+    of that rectangular ROI
+    """
+    # extracting corners from rectangle (top left and bottom right)
+    x1, y1, x2, y2 = rectangle
+    # cropping and flattening disparity image so that we are only dealing with ROI values
+    rectangle_disparity = crop_image(disparity, y1, y2, x1, x2)
+    # sorting the disparity ROI by ascending disparity
+    rectangle_disparity = np.sort(rectangle_disparity, axis=None)
+    # keeping only the final third of the pixels (which we believe correspond to the detected object)
+    rectangle_disparity = rectangle_disparity[(
+        2 * len(rectangle_disparity)) // 3:]
+    # compute corresponding depths
+    rectangle_depths = compute_depth(
+        rectangle_disparity, focal_length, distance_between_cameras)
+    # return the average depth
+    return np.average(rectangle_depths)
+
+
+# </section>End of Functions Section
+
+
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 for filename_left in left_file_list:
-    #<section>---------------Directory Checks---------------
+    # <section>---------------Directory Checks---------------
     # skipping if requested
     if check_skip(skip_forward_file_pattern, filename_left):
         continue
@@ -205,10 +232,10 @@ for filename_left in left_file_list:
                                                 full_path_directory_right, filename_right)
     full_path_filename_left, full_path_filename_right = full_path_filenames
 
-    # for sanity print out these filenames
-    print(full_path_filename_left)
-    print(full_path_filename_right)
-    #</section>-----------End of Directory Checks-----------
+    # # for sanity print out these filenames
+    # print(full_path_filename_left)
+    # print(full_path_filename_right)
+    # </section>-----------End of Directory Checks-----------
     # check the file is a PNG file (left) and check a correspondoning right image
     # actually exists
     if ('.png' in filename_left) and (os.path.isfile(full_path_filename_right)):
@@ -217,47 +244,71 @@ for filename_left in left_file_list:
         # RGB images so load both as such
         imgL = cv2.imread(full_path_filename_left, cv2.IMREAD_COLOR)
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
-        print("-- files loaded successfully\n")
+        #print("-- files loaded successfully\n")
 
-        #compute image width
+        # compute image width
         original_width = np.size(imgL, 1)
 
         # compute disparity
         disparity = compute_disparity(
             imgL, imgR, max_disparity, 5, original_width)
 
-        # compute depth from disparity
-        depth = compute_depth(
-            disparity, camera_focal_length_px, stereo_camera_baseline_m)
-
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
-        #get detections as rectangles and their respective classes
-        detections, class_numbers = hog_detect(imgL, 1.25, svm, False)
+        # get detections as rectangles and their respective classes
+        detection_rects, detection_classes = hog_detect(imgL, 1.25, svm, False)
 
-        #<section>-------------------Display-----------
-        #draw detections onto imgL
-        for rect in detections:
-            cv2.rectangle(imgL, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
+        # get a single depth estimation for each detected object
+        detection_depths = np.fromiter((compute_single_depth(
+            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
 
-        #show left color image
-        cv2.imshow('detected objects',imgL)
+        # <section>-------------------Display-----------
+        min_depth = 1000
+        min_depth_class = ""
+        # draw detections onto imgL
+        for i in range(len(detection_classes)):
+            # get rect
+            det_rect = detection_rects[i]
+            x1, y1, x2, y2 = det_rect
+            # get class number
+            det_class = int(detection_classes[i])
+            # get depth
+            det_depth = round(detection_depths[i], 1)
+            # get color based on class number
+            color = params.COLORS[det_class]
+            # get class name based on class number
+            det_class_name = utils.get_class_name(det_class)
+            # draw colored rectangle where detected object is
+            cv2.rectangle(imgL, (x1, y1),
+                          (x2, y2), color, 2)
+            # label rectangle
+            cv2.putText(imgL, "{}: {} m".format(det_class_name,
+                                                det_depth), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.3, color)
+            if det_depth < min_depth:
+                min_depth = det_depth
+                min_depth_class = det_class_name
+        #requested standard out
+        print(filename_left)
+        print("{}: {} ({} m)\n".format(
+            filename_right, min_depth_class, min_depth))
 
-        #show disparity image (scaling it to the full 0->255 range)
+        # show left color image
+        cv2.imshow('detected objects', imgL)
+
+        # show disparity image (scaling it to the full 0->255 range)
         cv2.imshow("disparity", (disparity
                                  * (256 / max_disparity)).astype(np.uint8))
-
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)
 
         # wait 40ms (i.e. 1000ms / 25 fps = 40 ms)
-        cv2.waitKey(40) & 0xFF
-        #</section>-------End of Display Section--------
+        cv2.waitKey(16) & 0xFF
+        # </section>-------End of Display Section--------
     else:
         print("-- files skipped (perhaps one is missing or not PNG)\n")
 
 # close all windows
 cv2.destroyAllWindows()
-#</section>
+# </section>
