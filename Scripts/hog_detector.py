@@ -65,11 +65,11 @@ def hog_detect(image, rescaling_factor, svm_object, scan_boolean):
                 # histogram and passing it through the SVM classifier
                 if img_data.hog_descriptor is not None:
 
-                    print("detecting with SVM ...")
+                    #print("detecting with SVM ...")
 
                     retval, [result] = svm_object.predict(np.float32([img_data.hog_descriptor]))
 
-                    print(result)
+                    #print(result)
 
                     # if we get a detection, then record it
                     class_number = result[0]
@@ -84,8 +84,9 @@ def hog_detect(image, rescaling_factor, svm_object, scan_boolean):
                             cv2.imshow('current scale',rect_img)
                             cv2.waitKey(10)
 
-                        #append the rect to the list of detections
+                        #rescale the rect
                         rect *= (1.0 / current_scale)
+                        #append the rect to the list of detections
                         detections.append(rect)
                         #append class number to list of class numbers
                         detection_classes.append(class_number)
