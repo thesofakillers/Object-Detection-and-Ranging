@@ -11,6 +11,7 @@
 
 import cv2
 import os
+import sys
 
 ################################################################################
 # settings for datsets in general
@@ -130,11 +131,10 @@ MATCHER = cv2.FlannBasedMatcher(_index_params, _search_params)
 ################################################################################
 # settings for HOG approaches
 
-HOG_SVM_PATH = "../Write/svm_hog2.xml"
+HOG_SVM_PATH = "../Write/"+sys.argv[1]
 
 HOG_SVM_kernel = cv2.ml.SVM_POLY  # see opencv manual for other options
 HOG_SVM_max_training_iterations = 500  # stop training after max iterations
-
 HOG_SVM_DEGREE = 3
 ################################################################################
 
