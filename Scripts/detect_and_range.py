@@ -13,10 +13,8 @@ import os
 import numpy as np
 import math
 from hog_detector import hog_detect
-import T_Breckon.BoW_HOG.params as params
-import T_Breckon.BoW_HOG.utils as utils
-import warnings
-warnings.filterwarnings("error")
+import params
+import utils
 # </section>End of Imports
 
 
