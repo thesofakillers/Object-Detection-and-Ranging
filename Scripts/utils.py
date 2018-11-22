@@ -7,30 +7,24 @@
 
 # Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW
 
-################################################################################
-
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import os
 import numpy as np
 import cv2
 import params
 import math
 import random
+# </section>End of Imports
 
-################################################################################
-# global flags to facilitate output of additional info per stage/function
-# set these to false to speed up times (i.e. you don't need to see
-# images/patches/prints)
 
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~Global Flags~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 show_additional_process_information = False
 show_images_as_they_are_loaded = False
 show_images_as_they_are_sampled = False
-
-################################################################################
-
-# timing information - for training
-# - helper function for timing code execution
+# </section>End of Global Flags
 
 
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Timing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def get_elapsed_time(start):
     return (cv2.getTickCount() - start) / cv2.getTickFrequency()
 
@@ -48,16 +42,17 @@ def format_time(time):
 def print_duration(start):
     time = get_elapsed_time(start)
     print(("Took {}".format(format_time(time))))
-
-################################################################################
-
-# reads all the images in a given folder path and returns the results
-
-# for obvious reasons this will break with a very large dataset as you will run
-# out of memory - so an alternative approach may be required in that case
+# </section>End of Timing
 
 
+# <section>~~~~~~~~~~~~~~~~~~~~~General Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def read_all_images(path):
+    """
+    reads all the images in a given folder path and returns the results
+
+    for obvious reasons this will break with a very large dataset as you will run
+    out of memory - so an alternative approach may be required in that case
+    """
     images_path = [os.path.join(path, f) for f in os.listdir(path)]
     images = []
     for image_path in images_path:
@@ -68,11 +63,6 @@ def read_all_images(path):
 
         images.append(img)
     return images
-
-################################################################################
-
-# stack array of items as basic Pyton data manipulation
-
 
 def stack_array(arr):
     stacked_arr = np.array([])
@@ -85,81 +75,12 @@ def stack_array(arr):
                 stacked_arr = np.vstack((stacked_arr, item))
     return stacked_arr
 
-################################################################################
-
-# transform between class numbers (i.e. codes) - {0,1,2, ...N} and
-# names {dog,cat cow, ...} - used in training and testing
-
-
-def get_class_number(class_name):
-    return params.DATA_CLASS_NAMES.get(class_name, 0)
-
-
-def get_class_name(class_code):
-    for name, code in params.DATA_CLASS_NAMES.items():
-        if code == class_code:
-            return name
-
-################################################################################
-
-# image data class object that contains the images, descriptors and bag of word
-# histograms
-
-
-class ImageData(object):
-    def __init__(self, img):
-        self.img = img
-        self.class_name = ""
-        self.class_number = None
-
-        #initialize HOGDescriptor object with parameters from params.py
-        self.hog = cv2.HOGDescriptor(params.HOG_DESC_winSize,
-                                     params.HOG_DESC_blockSize,
-                                     params.HOG_DESC_blockStride,
-                                     params.HOG_DESC_cellSize,
-                                     params.HOG_DESC_nbins,
-                                     params.HOG_DESC_derivAperture,
-                                     params.HOG_DESC_winSigma,
-                                     params.HOG_DESC_histogramNormType,
-                                     params.HOG_DESC_L2HysThreshold,
-                                     params.HOG_DESC_gammaCorrection)
-        self.hog_descriptor = np.array([])
-
-    def set_class(self, class_name):
-        self.class_name = class_name
-        self.class_number = get_class_number(self.class_name)
-        if show_additional_process_information:
-            print("class name : ", class_name, " - ", self.class_number)
-
-    def compute_hog_descriptor(self):
-
-        # generate the HOG descriptors for a given image
-
-        # resizes the image to ensure that all images are the same size.
-
-        img_hog = cv2.resize(
-            self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
-
-        # computes hog descriptor utilizing built-in openCV
-
-        self.hog_descriptor = self.hog.compute(img_hog)
-
-        if self.hog_descriptor is None:
-            self.hog_descriptor = np.array([])
-
-        if show_additional_process_information:
-            print("HOG descriptor computed - dimension: ",
-                  self.hog_descriptor.shape)
-
-################################################################################
-
-# generates a set of random sample patches from a given image of a specified size
-# with an optional flag just to train from patches centred around the centre of the image
-
-
 def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
                      centre_sampling_offset=10, patch_size=(64, 128)):
-
+    """
+    generates a set of random sample patches from a given image of a specified size
+    with an optional flag just to train from patches centred around the centre of the image
+    """
     patches = []
 
     # if no patches specifed just return original image
@@ -231,17 +152,91 @@ def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
 
         return patches
 
+def get_hog_descriptors(imgs_data):
+    """return the global set of hog descriptors for the data set of images"""
+    samples = stack_array([[img_data.hog_descriptor]
+                           for img_data in imgs_data])
+    return np.float32(samples)
+# </section>End of Functions
+
+
+# <section>~~~~~~~~~~~~~~~~~~~~~~Class Transforms~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def get_class_number(class_name):
+    return params.DATA_CLASS_NAMES.get(class_name, 0)
+
+
+def get_class_name(class_code):
+    for name, code in params.DATA_CLASS_NAMES.items():
+        if code == class_code:
+            return name
+
+# return global the set of numerical class labels for the data set of images
+def get_class_labels(imgs_data):
+    class_labels = [img_data.class_number for img_data in imgs_data]
+    return np.int32(class_labels)
+# </section>End of Class Transforms
+
+
+# image data class object that contains the images, descriptors and bag of word
+# histograms
+class ImageData(object):
+    def __init__(self, img):
+        self.img = img
+        self.class_name = ""
+        self.class_number = None
+
+        #initialize HOGDescriptor object with parameters from params.py
+        self.hog = cv2.HOGDescriptor(params.HOG_DESC_winSize,
+                                     params.HOG_DESC_blockSize,
+                                     params.HOG_DESC_blockStride,
+                                     params.HOG_DESC_cellSize,
+                                     params.HOG_DESC_nbins,
+                                     params.HOG_DESC_derivAperture,
+                                     params.HOG_DESC_winSigma,
+                                     params.HOG_DESC_histogramNormType,
+                                     params.HOG_DESC_L2HysThreshold,
+                                     params.HOG_DESC_gammaCorrection)
+        self.hog_descriptor = np.array([])
+
+    def set_class(self, class_name):
+        self.class_name = class_name
+        self.class_number = get_class_number(self.class_name)
+        if show_additional_process_information:
+            print("class name : ", class_name, " - ", self.class_number)
+
+    def compute_hog_descriptor(self):
+
+        # generate the HOG descriptors for a given image
+
+        # resizes the image to ensure that all images are the same size.
+
+        img_hog = cv2.resize(
+            self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
+
+        # computes hog descriptor utilizing built-in openCV
+
+        self.hog_descriptor = self.hog.compute(img_hog)
+
+        if self.hog_descriptor is None:
+            self.hog_descriptor = np.array([])
+
+        if show_additional_process_information:
+            print("HOG descriptor computed - dimension: ",
+                  self.hog_descriptor.shape)
+
+
 ################################################################################
 
-# add images from a specified path to the dataset, adding the appropriate class/type name
-# and optionally adding up to N samples of a specified size with flags for taking them
-# from the centre of the image only with +/- offset in pixels
 
-
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Image Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
+    """
+    add images from a specified path to the dataset, adding the appropriate
+    class/type name and optionally adding up to N samples of a specified size with
+    flags for taking them from the centre of the image only with +/- offset in pixels
+    """
 
     # read all images at location
-
     imgs = read_all_images(path)
 
     img_count = len(imgs_data)
@@ -272,12 +267,9 @@ def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=Fal
 
     return imgs_data
 
-################################################################################
-
-# load image data from specified paths
-
-
 def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)):
+    """load image data from specified paths"""
+
     imgs_data = []  # type: list[ImageData]
 
     # for each specified path and corresponding class_name and required number
@@ -288,25 +280,4 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
                         centre_weighting, centre_sampling_offset, patch_size)
 
     return imgs_data
-
-
-################################################################################
-
-# return the global set of hog descriptors for the data set of images
-
-def get_hog_descriptors(imgs_data):
-
-    samples = stack_array([[img_data.hog_descriptor]
-                           for img_data in imgs_data])
-    return np.float32(samples)
-
-################################################################################
-
-# return global the set of numerical class labels for the data set of images
-
-
-def get_class_labels(imgs_data):
-    class_labels = [img_data.class_number for img_data in imgs_data]
-    return np.int32(class_labels)
-
-################################################################################
+# </section>End of Image Loading

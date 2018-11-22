@@ -1,4 +1,3 @@
-#####################################################################
 """
 Detects pedestrians and estimates the distance to them using HoG, SVM and SGBM.
 
