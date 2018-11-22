@@ -12,7 +12,7 @@
 import os
 import numpy as np
 import cv2
-import T_Breckon.BoW_HOG.params as params
+import params
 import math
 import random
 
