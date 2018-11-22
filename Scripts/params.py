@@ -133,7 +133,7 @@ MATCHER = cv2.FlannBasedMatcher(_index_params, _search_params)
 
 HOG_SVM_PATH = "../Write/"+sys.argv[1]
 
-HOG_SVM_kernel = cv2.ml.SVM_RBF  # see opencv manual for other options
+HOG_SVM_kernel = cv2.ml.SVM_LINEAR  # see opencv manual for other options
 HOG_SVM_max_training_iterations = 500  # stop training after max iterations
 HOG_SVM_DEGREE = 3
 ################################################################################
