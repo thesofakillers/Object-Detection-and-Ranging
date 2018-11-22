@@ -74,7 +74,7 @@ def main():
     svm = cv2.ml.SVM_create()
     svm.setType(cv2.ml.SVM_C_SVC)           # change this for multi-class
     svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type (alteratives exist)
-    svm.setDegree(params.HOG_SVM_DEGREE)
+
     # get hog descriptor for each image and store in single global array
 
     samples = get_hog_descriptors(imgs_data)
