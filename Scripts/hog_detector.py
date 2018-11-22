@@ -10,9 +10,9 @@ Minor portions: based on fork from https://github.com/nextgensparx/PyBOW
 Original Module Docstring^^^^ I slightly edited the script so that I can use it
 more modularly
 """
-from T_Breckon.BoW_HOG.sliding_window import *
-from T_Breckon.BoW_HOG.utils import *
-import T_Breckon.BoW_HOG.params as params
+from sliding_window import *
+from utils import *
+import params
 import math
 
 
