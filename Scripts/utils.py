@@ -225,9 +225,6 @@ class ImageData(object):
                   self.hog_descriptor.shape)
 
 
-################################################################################
-
-
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Image Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
     """
