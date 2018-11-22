@@ -1,6 +1,6 @@
 ################################################################################
 
-# functionality: utility functions for BOW and HOG detection algorithms
+# functionality: utility functions for HOG detection algorithms
 
 # This version: (c) 2018 Toby Breckon, Dept. Computer Science, Durham University, UK
 # License: MIT License
@@ -112,7 +112,6 @@ class ImageData(object):
 
         self.hog = cv2.HOGDescriptor(); # default is 64 x 128
         self.hog_descriptor = np.array([])
-        self.bow_descriptors = np.array([])
 
 
     def set_class(self, class_name):
@@ -138,41 +137,6 @@ class ImageData(object):
 
         if show_additional_process_information:
             print("HOG descriptor computed - dimension: ", self.hog_descriptor.shape);
-
-    def compute_bow_descriptors(self):
-
-        # generate the feature descriptors for a given image
-
-        self.bow_descriptors = params.DETECTOR.detectAndCompute(self.img, None)[1]
-
-        if self.bow_descriptors is None:
-            self.bow_descriptors = np.array([])
-
-        if show_additional_process_information:
-            print("# feature descriptors computed - ", len(self.bow_descriptors));
-
-    def generate_bow_hist(self, dictionary):
-        self.bow_histogram = np.zeros((len(dictionary), 1))
-
-        # generate the bow histogram of feature occurance from descriptors
-
-        if (params.BOW_use_ORB_always):
-            # FLANN matcher with ORB needs dictionary to be uint8
-            matches = params.MATCHER.match(self.bow_descriptors, np.uint8(dictionary));
-        else:
-            # FLANN matcher with SIFT/SURF needs descriptors to be type32
-            matches = params.MATCHER.match(np.float32(self.bow_descriptors), dictionary)
-
-        for match in matches:
-            # Get which visual word this descriptor matches in the dictionary
-            # match.trainIdx is the visual_word
-            # Increase count for this visual word in histogram (known as hard assignment)
-            self.bow_histogram[match.trainIdx] += 1
-
-        # Important! - normalize the histogram to L1 to remove bias for number
-        # of descriptors per image or class (could use L2?)
-
-        self.bow_histogram = cv2.normalize(self.bow_histogram, None, alpha=1, beta=0, norm_type=cv2.NORM_L1);
 
 ################################################################################
 
@@ -301,14 +265,6 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
 
     return imgs_data
 
-################################################################################
-
-# return the global set of bow histograms for the data set of images
-
-def get_bow_histograms(imgs_data):
-
-    samples = stack_array([[img_data.bow_histogram] for img_data in imgs_data])
-    return np.float32(samples)
 
 ################################################################################
 
