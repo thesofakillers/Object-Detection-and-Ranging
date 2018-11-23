@@ -45,7 +45,7 @@ DATA_WINDOW_OFFSET_FOR_TRAINING_SAMPLES = 3
 
 # number of sample patches to extract from each negative training example
 
-DATA_training_sample_count_neg = 10
+DATA_training_sample_count_neg = 15
 
 # number of sample patches to extract from each positive training example
 
