@@ -1,0 +1,10 @@
+Loading images...
+Loaded 36440 image(s)
+Took 9.0s
+Computing HOG descriptors...
+Took 7.8s
+Training SVM...
+Trained SVM obtained 0.0% training set error
+-- meaining the SVM got 100.0% of the training examples correct!
+Took 164m : 35.45s
+Finished training HoG detector. 164m : 52.21s
