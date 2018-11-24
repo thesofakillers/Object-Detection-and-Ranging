@@ -35,7 +35,7 @@ def perform_selective_search(image, ss_object, max_rects, min_area):
     rects = ss_object.process()
 
     rects_to_return = [rect for rect in rects[:max_rects]
-                       if (rect[2] < min_width and rect[3] < min_height)]
+                       if (rect[2] > min_width and rect[3] > min_height)]
 
     ss_object.clearImages()
 
