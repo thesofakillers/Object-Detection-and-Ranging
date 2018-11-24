@@ -157,6 +157,13 @@ def get_hog_descriptors(imgs_data):
     samples = stack_array([[img_data.hog_descriptor]
                            for img_data in imgs_data])
     return np.float32(samples)
+
+def crop_image(image, start_height, end_height, start_width, end_width):
+    """
+    Crops an image according to passed start and end heights and widths with
+    the origin placed at the image top left
+    """
+    return image[start_height:end_height, start_width:end_width]
 # </section>End of Functions
 
 

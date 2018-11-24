@@ -13,8 +13,16 @@ import numpy as np
 import math
 from hog_detector import hog_detect
 import params
-import utils
+from utils import *
 # </section>End of Imports
+
+
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~OpenCV settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#optimize when possible
+cv2.setUseOptimized(True);
+#try using multithreading when possible
+cv2.setNumThreads(4);
+# </section>End of Disparity Settings
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~Directory Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +87,13 @@ if classifier_model == "SVM":
 #     .
 #     etc
 # </section>
+
+
+# <section>~~~~~~~~~~~~~~~~~~~Selective Search Settings~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create Selective Search Segmentation Object using default parameters
+ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+
+# </section>End of Disparity Settings
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~Camera Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,14 +182,6 @@ def click_event(event, x, y, flags, param):
         print(depth[y, x])
 
 
-def crop_image(image, start_height, end_height, start_width, end_width):
-    """
-    Crops an image according to passed start and end heights and widths with
-    the origin placed at the image top left
-    """
-    return image[start_height:end_height, start_width:end_width]
-
-
 def compute_depth(disparity, focal_length, distance_between_cameras):
     """
     Computes depth in meters
@@ -254,7 +261,7 @@ for filename_left in left_file_list:
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
         # get detections as rectangles and their respective classes
-        detection_rects, detection_classes = hog_detect(imgL, 1.25, svm, False)
+        detection_rects, detection_classes = hog_detect(imgL, svm, ss)
 
         # get a single depth estimation for each detected object
         detection_depths = np.fromiter((compute_single_depth(
@@ -275,7 +282,7 @@ for filename_left in left_file_list:
             # get color based on class number
             color = params.COLORS[det_class]
             # get class name based on class number
-            det_class_name = utils.get_class_name(det_class)
+            det_class_name = get_class_name(det_class)
             # draw colored rectangle where detected object is
             cv2.rectangle(imgL, (x1, y1),
                           (x2, y2), color, 2)
