@@ -12,16 +12,17 @@ import os
 import numpy as np
 import math
 from hog_detector import hog_detect
+from selective_search import perform_selective_search
 import params
 from utils import *
 # </section>End of Imports
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~OpenCV settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#optimize when possible
-cv2.setUseOptimized(True);
-#try using multithreading when possible
-cv2.setNumThreads(4);
+# optimize when possible
+cv2.setUseOptimized(True)
+# try using multithreading when possible
+cv2.setNumThreads(4)
 # </section>End of Disparity Settings
 
 
@@ -260,25 +261,45 @@ for filename_left in left_file_list:
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
-        # get detections as rectangles and their respective classes
-        detection_rects, detection_classes = hog_detect(imgL, svm, ss)
+        # get rectangles of regions of interest on the image
+        regions_of_interest = perform_selective_search(imgL, ss, 1000, 3600)
 
+        # initialize empty lists of detections
+        all_detection_rects = []
+        all_detection_classes = []
+
+        # for each region, perform sliding window search/hog (seems wrong tbh)
+        for region in regions_of_interest:
+            # unpacking region information
+            x1, y1, x2, y2 = region
+            # getting correspinding image
+            corresponding_frame = crop_image(imgL, y1, y2, x1, x2)
+            # getting detections from current region of interest
+            detection_rects, detection_classes = hog_detect(
+                corresponding_frame, 1.25, svm, False)
+            # appending detections to list of detections
+            for i in range(len(detection_rects)):
+                all_detection_rects.append(detection_rects[i])
+                all_detection_classes.append(detection_classes[i])
+
+        # converting to numpy array for convenience
+        all_detection_rects = np.array(all_detection_rects)
         # get a single depth estimation for each detected object
-        detection_depths = np.fromiter((compute_single_depth(
-            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
+        all_detection_depths = np.fromiter((compute_single_depth(
+            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in all_detection_rects), float)
 
         # <section>-------------------Display-----------
         min_depth = 1000
-        min_depth_class = ""
+        min_depth_class = "No Detections"
         # draw detections onto imgL
-        for i in range(len(detection_classes)):
+        for i in range(len(all_detection_classes)):
             # get rect
-            det_rect = detection_rects[i]
+            det_rect = all_detection_rects[i]
             x1, y1, x2, y2 = det_rect
             # get class number
-            det_class = int(detection_classes[i])
+            det_class = int(all_detection_classes[i])
             # get depth
-            det_depth = round(detection_depths[i], 1)
+            det_depth = round(all_detection_depths[i], 1)
             # get color based on class number
             color = params.COLORS[det_class]
             # get class name based on class number
@@ -292,7 +313,9 @@ for filename_left in left_file_list:
             if det_depth < min_depth:
                 min_depth = det_depth
                 min_depth_class = det_class_name
-        #requested standard out
+        # requested standard out
+        if min_depth >= 1000:
+            min_depth = "Depth Irrelevant"
         print(filename_left)
         print("{}: {} ({} m)\n".format(
             filename_right, min_depth_class, min_depth))
@@ -301,8 +324,8 @@ for filename_left in left_file_list:
         cv2.imshow('detected objects', imgL)
 
         # show disparity image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity
-                                 * (256 / max_disparity)).astype(np.uint8))
+        cv2.imshow("disparity", (disparity *
+                                 (256 / max_disparity)).astype(np.uint8))
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)
