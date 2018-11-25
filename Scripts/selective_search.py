@@ -13,10 +13,8 @@ Original Module Docstring^^^^ I slightly edited the script so that I can use it
 more modularly
 """
 import cv2
-import os
-import sys
-import math
 import numpy as np
+from utils import *
 
 
 def perform_selective_search(image, ss_object, max_rects, min_area):
