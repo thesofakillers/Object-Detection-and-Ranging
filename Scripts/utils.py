@@ -259,19 +259,33 @@ class ImageData(object):
         self.img = img
         self.class_name = ""
         self.class_number = None
-
-        # initialize HOGDescriptor object with parameters from params.py
-        self.hog = cv2.HOGDescriptor(params.HOG_DESC_winSize,
-                                     params.HOG_DESC_blockSize,
-                                     params.HOG_DESC_blockStride,
-                                     params.HOG_DESC_cellSize,
-                                     params.HOG_DESC_nbins,
-                                     params.HOG_DESC_derivAperture,
-                                     params.HOG_DESC_winSigma,
-                                     params.HOG_DESC_histogramNormType,
-                                     params.HOG_DESC_L2HysThreshold,
-                                     params.HOG_DESC_gammaCorrection)
+        self.initialize_HoG_Descriptor()
         self.hog_descriptor = np.array([])
+
+    def initialize_HoG_Descriptor(self,
+                                  win_size=params.HOG_DESC_winSize,
+                                  block_size=params.HOG_DESC_blockSize,
+                                  block_stride=params.HOG_DESC_blockStride,
+                                  cell_size=params.HOG_DESC_cellSize,
+                                  n_bins=params.HOG_DESC_nbins,
+                                  deriv_aperture=params.HOG_DESC_derivAperture,
+                                  window_sigma=params.HOG_DESC_winSigma,
+                                  norm_type=params.HOG_DESC_histogramNormType,
+                                  L2_threshold=params.HOG_DESC_L2HysThreshold,
+                                  gamma_corr=params.HOG_DESC_gammaCorrection):
+        """
+        initializes the HoGDescriptor Object
+        """
+        self.hog = cv2.HOGDescriptor(win_size,
+                                     block_size,
+                                     block_stride,
+                                     cell_size,
+                                     n_bins,
+                                     deriv_aperture,
+                                     window_sigma,
+                                     norm_type,
+                                     L2_threshold,
+                                     gamma_corr)
 
     def set_class(self, class_name):
         self.class_name = class_name
@@ -280,16 +294,15 @@ class ImageData(object):
             print("class name : ", class_name, " - ", self.class_number)
 
     def compute_hog_descriptor(self):
-
-        # generate the HOG descriptors for a given image
+        """
+        computes the HOG descriptors for a given image
+        """
 
         # resizes the image to ensure that all images are the same size.
-
         img_hog = cv2.resize(
             self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
 
         # computes hog descriptor utilizing built-in openCV
-
         self.hog_descriptor = self.hog.compute(img_hog)
 
         if self.hog_descriptor is None:
