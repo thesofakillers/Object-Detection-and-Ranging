@@ -228,6 +228,15 @@ def non_max_suppression_fast(boxes, overlapThresh):
     # return only the indices of bounding boxes that were picked using the
     # integer data type
     return pick
+
+
+def subtrahend_to_make_divisible(minuend, divisor):
+    """
+    If we want (minuend-subtrahend)%divisor == 0, calculates the subtrahend.
+    Inputs: minuend and divisor (numbers)
+    """
+    remainder = minuend % divisor #the subtrahend here is simply the remainder
+    return remainder
 # </section>End of Functions
 
 
