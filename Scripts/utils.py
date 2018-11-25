@@ -1,11 +1,11 @@
-################################################################################
+"""
+functionality: utility functions for shared across different scripts
 
-# functionality: utility functions for HOG detection algorithms
+Largely (very heavily) Based on work by: (c) 2018 Toby Breckon, Dept. Computer Science,
+Durham University, UK
+License: MIT License
 
-# This version: (c) 2018 Toby Breckon, Dept. Computer Science, Durham University, UK
-# License: MIT License
-
-# Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW
+Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW"""
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import os
@@ -24,7 +24,7 @@ show_images_as_they_are_sampled = False
 # </section>End of Global Flags
 
 
-# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Timing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Timing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def get_elapsed_time(start):
     return (cv2.getTickCount() - start) / cv2.getTickFrequency()
 
@@ -64,6 +64,7 @@ def read_all_images(path):
         images.append(img)
     return images
 
+
 def stack_array(arr):
     stacked_arr = np.array([])
     for item in arr:
@@ -74,6 +75,7 @@ def stack_array(arr):
             else:
                 stacked_arr = np.vstack((stacked_arr, item))
     return stacked_arr
+
 
 def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
                      centre_sampling_offset=10, patch_size=(64, 128)):
@@ -152,11 +154,13 @@ def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
 
         return patches
 
+
 def get_hog_descriptors(imgs_data):
     """return the global set of hog descriptors for the data set of images"""
     samples = stack_array([[img_data.hog_descriptor]
                            for img_data in imgs_data])
     return np.float32(samples)
+
 
 def crop_image(image, start_height, end_height, start_width, end_width):
     """
@@ -164,6 +168,66 @@ def crop_image(image, start_height, end_height, start_width, end_width):
     the origin placed at the image top left
     """
     return image[start_height:end_height, start_width:end_width]
+
+
+def non_max_suppression_fast(boxes, overlapThresh):
+    """
+    perform basic non-maximal suppression of overlapping object detections
+    """
+    # if there are no boxes, return an empty list
+    if len(boxes) == 0:
+        return []
+
+    # if the bounding boxes integers, convert them to floats --
+    # this is important since we'll be doing a bunch of divisions
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+
+    # initialize the list of picked indexes
+    pick = []
+
+    # grab the coordinates of the bounding boxes
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
+
+    # compute the area of the bounding boxes and sort the bounding
+    # boxes by the bottom-right y-coordinate of the bounding box
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    idxs = np.argsort(y2)
+
+    # keep looping while some indexes still remain in the indexes
+    # list
+    while len(idxs) > 0:
+        # grab the last index in the indexes list and add the
+        # index value to the list of picked indexes
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+
+        # find the largest (x, y) coordinates for the start of
+        # the bounding box and the smallest (x, y) coordinates
+        # for the end of the bounding box
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+        # compute the width and height of the bounding box
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+
+        # compute the ratio of overlap
+        overlap = (w * h) / area[idxs[:last]]
+
+        # delete all indexes from the index list that have a significant overlap
+        idxs = np.delete(idxs, np.concatenate(([last],
+                                               np.where(overlap > overlapThresh)[0])))
+
+    # return only the bounding boxes that were picked using the
+    # integer data type
+    return pick
 # </section>End of Functions
 
 
@@ -178,21 +242,25 @@ def get_class_name(class_code):
             return name
 
 # return global the set of numerical class labels for the data set of images
+
+
 def get_class_labels(imgs_data):
     class_labels = [img_data.class_number for img_data in imgs_data]
     return np.int32(class_labels)
 # </section>End of Class Transforms
 
 
-# image data class object that contains the images, descriptors and bag of word
-# histograms
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class ImageData(object):
+    """image data class object that contains the images, descriptors and bag of word
+    histograms"""
+
     def __init__(self, img):
         self.img = img
         self.class_name = ""
         self.class_number = None
 
-        #initialize HOGDescriptor object with parameters from params.py
+        # initialize HOGDescriptor object with parameters from params.py
         self.hog = cv2.HOGDescriptor(params.HOG_DESC_winSize,
                                      params.HOG_DESC_blockSize,
                                      params.HOG_DESC_blockStride,
@@ -230,9 +298,10 @@ class ImageData(object):
         if show_additional_process_information:
             print("HOG descriptor computed - dimension: ",
                   self.hog_descriptor.shape)
+# </section>End of Classes
 
 
-# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Image Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~Image Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
     """
     add images from a specified path to the dataset, adding the appropriate
@@ -270,6 +339,7 @@ def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=Fal
             img_count += 1
 
     return imgs_data
+
 
 def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)):
     """load image data from specified paths"""
