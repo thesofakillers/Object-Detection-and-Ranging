@@ -45,11 +45,11 @@ DATA_WINDOW_OFFSET_FOR_TRAINING_SAMPLES = 3
 
 # number of sample patches to extract from each negative training example
 
-DATA_training_sample_count_neg = 45
+DATA_training_sample_count_neg = 15
 
 # number of sample patches to extract from each positive training example
 
-DATA_training_sample_count_pos = 15
+DATA_training_sample_count_pos = 5
 
 # class names - N.B. ordering of 0, 1 for neg/pos = order of paths
 
