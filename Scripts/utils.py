@@ -230,13 +230,72 @@ def non_max_suppression_fast(boxes, overlapThresh):
     return pick
 
 
-def subtrahend_to_make_divisible(minuend, divisor):
+def determine_padding_necessary(image, cell_size):
     """
-    If we want (minuend-subtrahend)%divisor == 0, calculates the subtrahend.
-    Inputs: minuend and divisor (numbers)
+    determines the padding necessary so to make the image size a multiple of
+    the cell size
     """
-    remainder = minuend % divisor #the subtrahend here is simply the remainder
-    return remainder
+    # getting image size (h, w)
+    image_size = np.array(image.shape[:2])
+    # getting the remainder between the image size and the cell size
+    remainder = image_size % cell_size
+    # calculating the padding necessary so that img_size = alpha*cell_size
+    padding = cell_size - remainder
+    # return padding
+    return padding
+
+
+def split_padding(image, padding):
+    """
+    splits padding so that a portion is added to each side rather than all
+    on the bottom of the image
+    """
+    #initialize empty 0 high and low arrays
+    high = np.zeros(2)
+    low = np.zeros(2)
+
+    # for each dimension (y, x)
+    for i in range(len(padding)):
+        #if theres only 1 pixel to pad
+        if padding[i] <= 1:
+            high[i] = padding[i]
+        #if theres only two pixels to pad
+        elif padding[i] == 2:
+            half_padding = padding[i] // 2
+            high[i], low[i] = half_padding, half_padding
+        #if we need to start considering odd cases
+        elif padding[i] >= 3:
+            #get lower half
+            half_padding = padding[i] // 2
+            #get larger half (for odd numbers)
+            other_half = padding[i] - half_padding
+            #assign halves
+            high[i] = other_half
+            low[i] = half_padding
+    #convert to integers
+    high = high.astype("int")
+    low = low.astype("int")
+
+    #return pads
+    return high, low
+
+
+def fix_window(image, cell_size):
+    """
+    Fixes window size for HoG descriptor so that
+    >(winSize - blockSize) % blockStride == 0
+    >(blockSize % cellSize) == 0
+    are both satisfied. Given blockStride = alpha * cellSize.
+
+    Input: image to be fixed, cellsize
+    Output: a corresponding padded image
+    """
+    #get how much to pad
+    padding = determine_padding_necessary(image, cell_size)
+    #split it appropriately
+    high, low = split_padding(image, padding)
+    #pad image
+    return cv2.copyMakeBorder(image, high[0], low[0], low[1], high[1], cv2.BORDER_REFLECT101)
 # </section>End of Functions
 
 
