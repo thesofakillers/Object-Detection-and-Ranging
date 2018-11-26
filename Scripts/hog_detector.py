@@ -29,24 +29,16 @@ def hog_detect(image, svm_object, ss_object):
         x2, y2 = (x1 + w), (y1 + h)
         region_proposal = crop_image(image, y1, y2, x1, x2)
 
+        #fix window size so that it satisfies cellsize, blocksize, blockstride
+        region_proposal = fix_window(
+            region_proposal, np.array(params.HOG_DESC_cellSize))
+
+        #create image data object from fixed window
         img_data = ImageData(region_proposal)
 
-        # calculate appropriate block size given the specific region
-        block_height, block_width = subtrahend_to_make_divisible(
-            np.array(region_proposal.shape[:2]), np.array(params.HOG_DESC_blockStride))
-
-        """
-        need (winSize - blockSize) % blockStride == 0
-        AND (blockSize % cellSize) == 0
-
-        given blockStride = alpha * cellSize
-
-        """
-        
         # initialize HoG Descriptor with this custom region
-        img_data.initialize_HoG_Descriptor(win_size=region_proposal.shape[:2],
-                                           block_size=(block_height, block_width)
-                                           )
+        img_data.initialize_HoG_Descriptor(win_size=region_proposal.shape[:2])
+
         # compute the hog descriptor
         img_data.compute_hog_descriptor()
 
