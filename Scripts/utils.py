@@ -250,52 +250,81 @@ def split_padding(image, padding):
     splits padding so that a portion is added to each side rather than all
     on the bottom of the image
     """
-    #initialize empty 0 high and low arrays
+    # initialize empty 0 high and low arrays
     high = np.zeros(2)
     low = np.zeros(2)
 
     # for each dimension (y, x)
     for i in range(len(padding)):
-        #if theres only 1 pixel to pad
+        # if theres only 1 pixel to pad
         if padding[i] <= 1:
             high[i] = padding[i]
-        #if theres only two pixels to pad
+        # if theres only two pixels to pad
         elif padding[i] == 2:
             half_padding = padding[i] // 2
             high[i], low[i] = half_padding, half_padding
-        #if we need to start considering odd cases
+        # if we need to start considering odd cases
         elif padding[i] >= 3:
-            #get lower half
+            # get lower half
             half_padding = padding[i] // 2
-            #get larger half (for odd numbers)
+            # get larger half (for odd numbers)
             other_half = padding[i] - half_padding
-            #assign halves
+            # assign halves
             high[i] = other_half
             low[i] = half_padding
-    #convert to integers
+    # convert to integers
     high = high.astype("int")
     low = low.astype("int")
 
-    #return pads
+    # return pads
     return high, low
+
+
+def fix_size(image):
+    """
+    fixes image size so that its area >= 64*128
+    """
+    #get image dimensions
+    img_y, img_x = image.shape[:2]
+    #get minimum dimensions
+    min_x, min_y = params.DATA_WINDOW_SIZE
+    #calculate image area
+    img_area = img_y * img_x
+    #calculate minimum area
+    min_area = min_x * min_y
+    #if the image area is less than the minimum
+    if img_area < min_area:
+        #get the ratio by which it is less than
+        area_ratio = min_area / img_area
+        #calculate the factor by which each dimension should be scaled
+        resize_factor = np.sqrt(area_ratio)
+        #scale each dimension
+        new_x, new_y = np.ceil(
+            resize_factor * np.array([img_x, img_y])).astype("int")
+    else: #if the image is already large enough, leave as is
+        new_x, new_y = img_x, img_y
+    #return the resized image
+    return cv2.resize(image, (new_x, new_y), cv2.INTER_AREA)
 
 
 def fix_window(image, cell_size):
     """
     Fixes window size for HoG descriptor so that
-    >(winSize - blockSize) % blockStride == 0
-    >(blockSize % cellSize) == 0
-    are both satisfied. Given blockStride = alpha * cellSize.
+    > winArea >= 64*128
+    > (winSize - blockSize) % blockStride == 0
+    > (blockSize % cellSize) == 0
+    are all satisfied. Given blockStride = alpha * cellSize.
 
     Input: image to be fixed, cellsize
     Output: a corresponding padded image
     """
-    #get how much to pad
-    padding = determine_padding_necessary(image, cell_size)
-    #split it appropriately
-    high, low = split_padding(image, padding)
-    #pad image
-    return cv2.copyMakeBorder(image, high[0], low[0], low[1], high[1], cv2.BORDER_REFLECT101)
+    sized_image = fix_size(image)
+    # get how much to pad
+    padding = determine_padding_necessary(sized_image, cell_size)
+    # split it appropriately
+    high, low = split_padding(sized_image, padding)
+    # pad image
+    return cv2.copyMakeBorder(sized_image, high[0], low[0], low[1], high[1], cv2.BORDER_REFLECT101)
 # </section>End of Functions
 
 

@@ -29,7 +29,7 @@ def hog_detect(image, svm_object, ss_object):
         x2, y2 = (x1 + w), (y1 + h)
         region_proposal = crop_image(image, y1, y2, x1, x2)
 
-        #fix window size so that it satisfies cellsize, blocksize, blockstride
+        #fix window size so that it satisfies cellsize, blocksize, blockstride etc
         region_proposal = fix_window(
             region_proposal, np.array(params.HOG_DESC_cellSize))
 
