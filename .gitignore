@@ -108,3 +108,5 @@ venv.bak/
 Data/
 
 *.npy
+# other 
+test.py
