@@ -15,44 +15,34 @@ import sys
 
 ################################################################################
 # settings for datsets in general
-
-master_path_to_dataset = "../Data/Training"  # ** need to edit this **
+master_path_to_dataset = "../Data/Training"
 
 # data location - training examples
-
 DATA_training_path_neg = os.path.join(
     master_path_to_dataset, "INRIAPerson/Train/neg/")
 DATA_training_path_pos = os.path.join(
     master_path_to_dataset, "INRIAPerson/train_64x128_H96/pos/")
 
 # data location - testing examples
-
 DATA_testing_path_neg = os.path.join(
     master_path_to_dataset, "INRIAPerson/Test/neg/")
 DATA_testing_path_pos = os.path.join(
     master_path_to_dataset, "INRIAPerson/test_64x128_H96/pos/")
 
-# size of the sliding window patch / image patch to be used for classification
-# (for larger windows sizes, for example from selective search - resize the
-# window to this size before feature descriptor extraction / classification)
-
+# size of the image patch to be used for classification
 DATA_WINDOW_SIZE = [64, 128]
 
 # the maximum left/right, up/down offset to use when generating samples for training
 # that are centred around the centre of the image
-
 DATA_WINDOW_OFFSET_FOR_TRAINING_SAMPLES = 3
 
 # number of sample patches to extract from each negative training example
-
 DATA_training_sample_count_neg = 15
 
 # number of sample patches to extract from each positive training example
-
 DATA_training_sample_count_pos = 5
 
 # class names - N.B. ordering of 0, 1 for neg/pos = order of paths
-
 DATA_CLASS_NAMES = {
     "other": 0,
     "pedestrian": 1
@@ -76,15 +66,15 @@ HOG_DESC_gammaCorrection = True # whether or not to employ gamma correction
     #<section>~~~~~~~~~~~~~~~~~~~HoG SVM Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 HOG_SVM_PATH = "../Write/"+sys.argv[1]
 
-HOG_SVM_kernel = cv2.ml.SVM_RBF  # see opencv manual for other options
+HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
 HOG_SVM_max_training_iterations = 500  # stop training after max iterations
-HOG_SVM_DEGREE = 3
+HOG_SVM_DEGREE = 3 #if poly kernel used
     #</section>
 
 #</section>
-
+#for different classes
 COLORS = [(0, 0, 0),
-          (255, 100, 0),
-          (0, 255, 0),
-          (0, 0, 255),
-          (255, 255, 255)]
+          (255, 100, 0), #lighter blue
+          (0, 255, 0), #green
+          (0, 0, 255), #red
+          (255, 255, 255)] #white
