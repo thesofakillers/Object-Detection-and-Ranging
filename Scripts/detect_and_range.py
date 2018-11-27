@@ -269,7 +269,8 @@ for filename_left in left_file_list:
 
         # <section>-------------------Display-----------
         min_depth = 1000
-        min_depth_class = ""
+        min_depth_class = "No Detections"
+        units = " meters"
         # draw detections onto imgL
         for i in range(len(detection_classes)):
             # get rect
@@ -293,9 +294,12 @@ for filename_left in left_file_list:
                 min_depth = det_depth
                 min_depth_class = det_class_name
         #requested standard out
+        if min_depth >= 1000:
+            min_depth = "Depth Irrelevant"
+            units = ""
         print(filename_left)
-        print("{}: {} ({} m)\n".format(
-            filename_right, min_depth_class, min_depth))
+        print("{}: {} ({}{})\n".format(
+            filename_right, min_depth_class, min_depth, units))
 
         # show left color image
         cv2.imshow('detected objects', imgL)
