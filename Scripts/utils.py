@@ -362,11 +362,11 @@ class ImageData(object):
         """
 
         # # resizes the image to ensure that all images are the same size.
-        # img_hog = cv2.resize(
-        #     self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
+        img_hog = cv2.resize(
+             self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
 
         # computes hog descriptor utilizing built-in openCV
-        self.hog_descriptor = self.hog.compute(self.img)
+        self.hog_descriptor = self.hog.compute(img_hog)
 
         if self.hog_descriptor is None:
             self.hog_descriptor = np.array([])
