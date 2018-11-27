@@ -24,7 +24,9 @@ show_images_as_they_are_sampled = False
 # </section>End of Global Flags
 
 
-# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Timing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#   <section>~~~~~~~~~~~~~~~~~~~~~Timing Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def get_elapsed_time(start):
     return (cv2.getTickCount() - start) / cv2.getTickFrequency()
 
@@ -42,10 +44,9 @@ def format_time(time):
 def print_duration(start):
     time = get_elapsed_time(start)
     print(("Took {}".format(format_time(time))))
-# </section>End of Timing
+#   </section>End of Timing
 
 
-# <section>~~~~~~~~~~~~~~~~~~~~~General Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def read_all_images(path):
     """
     reads all the images in a given folder path and returns the results
@@ -229,7 +230,7 @@ def non_max_suppression_fast(boxes, overlapThresh):
     # integer data type
     return pick
 
-
+#   <section>~~~~~~~~~~~~~~~~~~~~~~~~Size Fixing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def determine_padding_necessary(image, cell_size):
     """
     determines the padding necessary so to make the image size a multiple of
@@ -284,26 +285,26 @@ def fix_size(image):
     """
     fixes image size so that its area >= 64*128
     """
-    #get image dimensions
+    # get image dimensions
     img_y, img_x = image.shape[:2]
-    #get minimum dimensions
+    # get minimum dimensions
     min_x, min_y = params.DATA_WINDOW_SIZE
-    #calculate image area
+    # calculate image area
     img_area = img_y * img_x
-    #calculate minimum area
+    # calculate minimum area
     min_area = min_x * min_y
-    #if the image area is less than the minimum
+    # if the image area is less than the minimum
     if img_area < min_area:
-        #get the ratio by which it is less than
+        # get the ratio by which it is less than
         area_ratio = min_area / img_area
-        #calculate the factor by which each dimension should be scaled
+        # calculate the factor by which each dimension should be scaled
         resize_factor = np.sqrt(area_ratio)
-        #scale each dimension
+        # scale each dimension
         new_x, new_y = np.ceil(
             resize_factor * np.array([img_x, img_y])).astype("int")
-    else: #if the image is already large enough, leave as is
+    else:  # if the image is already large enough, leave as is
         new_x, new_y = img_x, img_y
-    #return the resized image
+    # return the resized image
     return cv2.resize(image, (new_x, new_y), cv2.INTER_AREA)
 
 
@@ -325,6 +326,8 @@ def fix_window(image, cell_size):
     high, low = split_padding(sized_image, padding)
     # pad image
     return cv2.copyMakeBorder(sized_image, high[0], low[0], low[1], high[1], cv2.BORDER_REFLECT101)
+#   </section>End of Size Fixing
+
 # </section>End of Functions
 
 
