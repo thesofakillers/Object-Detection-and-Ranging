@@ -29,8 +29,15 @@ def perform_selective_search(image, ss_object, max_rects, min_area):
 
     # run selective search segmentation on input image
     rects = ss_object.process()  # one rect: x1, y1, w, h
+    rects = np.array(rects)
 
-    # ignoring overly small regions
-    accepted_rects = np.array([rect for rect in rects[:max_rects] if (rect[2] * rect[3] > min_area)])
+    # get mask for accepted rects
+    mask = np.logical_and(
+        np.greater(rects[:,3], rects[:,2]), #return only regions where h > width
+        np.greater(rects[:,2] * rects[:,3], min_area) # return only sufficiently large regions
+    )
+    
+    # filtering out results
+    accepted_rects = rects[mask]
 
     return accepted_rects
