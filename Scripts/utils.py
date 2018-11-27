@@ -123,8 +123,6 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
 #   </section>End of Image Loading
 
 #   <section>~~~~~~~~~~~~~~~~~Miscelleanous Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#   </section>End of Miscelleanous
 def stack_array(arr):
     stacked_arr = np.array([])
     for item in arr:
@@ -288,6 +286,7 @@ def non_max_suppression_fast(boxes, overlapThresh):
     # return only the indices of bounding boxes that were picked using the
     # integer data type
     return pick
+#   </section>End of Miscelleanous
 
 #   <section>~~~~~~~~~~~~~~~~~~~~~~~~Size Fixing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
