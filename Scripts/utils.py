@@ -46,6 +46,8 @@ def print_duration(start):
     print(("Took {}".format(format_time(time))))
 #   </section>End of Timing
 
+#   <section>~~~~~~~~~~~~~~~~~Image Handling Functions~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def read_all_images(path):
     """
@@ -66,6 +68,63 @@ def read_all_images(path):
     return images
 
 
+def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
+    """
+    add images from a specified path to the dataset, adding the appropriate
+    class/type name and optionally adding up to N samples of a specified size with
+    flags for taking them from the centre of the image only with +/- offset in pixels
+    """
+
+    # read all images at location
+    imgs = read_all_images(path)
+
+    img_count = len(imgs_data)
+    for img in imgs:
+
+        if (show_images_as_they_are_loaded):
+            cv2.imshow("example", img)
+            cv2.waitKey(5)
+
+        # generate up to N sample patches for each sample image
+        # if zero samples is specified then generate_patches just returns
+        # the original image (unchanged, unsampled) as [img]
+
+        for img_patch in generate_patches(img, samples, centre_weighting, centre_sampling_offset, patch_size):
+
+            if show_additional_process_information:
+                print("path: ", path, "class_name: ",
+                      class_name, "patch #: ", img_count)
+                print("patch: ", patch_size, "from centre: ",
+                      centre_weighting, "with offset: ", centre_sampling_offset)
+
+            # add each image patch to the data set
+
+            img_data = ImageData(img_patch)
+            img_data.set_class(class_name)
+            imgs_data.insert(img_count, img_data)
+            img_count += 1
+
+    return imgs_data
+
+
+def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)):
+    """load image data from specified paths"""
+
+    imgs_data = []  # type: list[ImageData]
+
+    # for each specified path and corresponding class_name and required number
+    # of samples - add them to the data set
+
+    for path, class_name, sample_count, centre_weighting in zip(paths, class_names, sample_set_sizes, use_centre_weighting_flags):
+        load_image_path(path, class_name, imgs_data, sample_count,
+                        centre_weighting, centre_sampling_offset, patch_size)
+
+    return imgs_data
+#   </section>End of Image Loading
+
+#   <section>~~~~~~~~~~~~~~~~~Miscelleanous Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#   </section>End of Miscelleanous
 def stack_array(arr):
     stacked_arr = np.array([])
     for item in arr:
@@ -231,6 +290,8 @@ def non_max_suppression_fast(boxes, overlapThresh):
     return pick
 
 #   <section>~~~~~~~~~~~~~~~~~~~~~~~~Size Fixing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 def determine_padding_necessary(image, cell_size):
     """
     determines the padding necessary so to make the image size a multiple of
@@ -412,59 +473,3 @@ class ImageData(object):
             print("HOG descriptor computed - dimension: ",
                   self.hog_descriptor.shape)
 # </section>End of Classes
-
-
-# <section>~~~~~~~~~~~~~~~~~~~~~~~Image Loading~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
-    """
-    add images from a specified path to the dataset, adding the appropriate
-    class/type name and optionally adding up to N samples of a specified size with
-    flags for taking them from the centre of the image only with +/- offset in pixels
-    """
-
-    # read all images at location
-    imgs = read_all_images(path)
-
-    img_count = len(imgs_data)
-    for img in imgs:
-
-        if (show_images_as_they_are_loaded):
-            cv2.imshow("example", img)
-            cv2.waitKey(5)
-
-        # generate up to N sample patches for each sample image
-        # if zero samples is specified then generate_patches just returns
-        # the original image (unchanged, unsampled) as [img]
-
-        for img_patch in generate_patches(img, samples, centre_weighting, centre_sampling_offset, patch_size):
-
-            if show_additional_process_information:
-                print("path: ", path, "class_name: ",
-                      class_name, "patch #: ", img_count)
-                print("patch: ", patch_size, "from centre: ",
-                      centre_weighting, "with offset: ", centre_sampling_offset)
-
-            # add each image patch to the data set
-
-            img_data = ImageData(img_patch)
-            img_data.set_class(class_name)
-            imgs_data.insert(img_count, img_data)
-            img_count += 1
-
-    return imgs_data
-
-
-def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)):
-    """load image data from specified paths"""
-
-    imgs_data = []  # type: list[ImageData]
-
-    # for each specified path and corresponding class_name and required number
-    # of samples - add them to the data set
-
-    for path, class_name, sample_count, centre_weighting in zip(paths, class_names, sample_set_sizes, use_centre_weighting_flags):
-        load_image_path(path, class_name, imgs_data, sample_count,
-                        centre_weighting, centre_sampling_offset, patch_size)
-
-    return imgs_data
-# </section>End of Image Loading
