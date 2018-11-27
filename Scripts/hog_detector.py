@@ -29,21 +29,13 @@ def hog_detect(image, svm_object, ss_object):
         x2, y2 = (x1 + w), (y1 + h)
         region_proposal = crop_image(image, y1, y2, x1, x2)
 
-        #fix window size so that it satisfies cellsize, blocksize, blockstride etc
-        region_proposal = fix_window(
-            region_proposal, np.array(params.HOG_DESC_cellSize))
-
-        #create image data object from fixed window
+        # create image data object from window
         img_data = ImageData(region_proposal)
-
-        # initialize HoG Descriptor with this custom region
-        img_data.initialize_HoG_Descriptor(win_size=region_proposal.shape[:2])
 
         # compute the hog descriptor
         img_data.compute_hog_descriptor()
 
-        # generate and classify each window by constructing a HoG
-        # histogram and passing it through the SVM classifier
+        # classify each HoG by passing it through the SVM classifier
         if img_data.hog_descriptor is not None:
             # apply svm classification
             retval, [result] = svm_object.predict(
@@ -58,7 +50,7 @@ def hog_detect(image, svm_object, ss_object):
                 # append class number to list of class numbers
                 detection_classes.append(class_number)
 
-    # converting to numpy.arrays
+    # converting to numpy.arrays for convenience
     detections = np.array(detections)
     detection_classes = np.array(detection_classes)
     # remove overlapping boxes.

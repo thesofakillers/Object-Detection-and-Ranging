@@ -122,7 +122,29 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
     return imgs_data
 #   </section>End of Image Loading
 
+#   <section>~~~~~~~~~~~~~~~~~Class Transform Functions~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def get_class_number(class_name):
+    return params.DATA_CLASS_NAMES.get(class_name, 0)
+
+
+def get_class_name(class_code):
+    for name, code in params.DATA_CLASS_NAMES.items():
+        if code == class_code:
+            return name
+
+# return global the set of numerical class labels for the data set of images
+
+
+def get_class_labels(imgs_data):
+    class_labels = [img_data.class_number for img_data in imgs_data]
+    return np.int32(class_labels)
+#   </section>End of Class Transforms Functions
+
 #   <section>~~~~~~~~~~~~~~~~~Miscelleanous Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 def stack_array(arr):
     stacked_arr = np.array([])
     for item in arr:
@@ -288,126 +310,7 @@ def non_max_suppression_fast(boxes, overlapThresh):
     return pick
 #   </section>End of Miscelleanous
 
-#   <section>~~~~~~~~~~~~~~~~~~~~~~~~Size Fixing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-def determine_padding_necessary(image, cell_size):
-    """
-    determines the padding necessary so to make the image size a multiple of
-    the cell size
-    """
-    # getting image size (h, w)
-    image_size = np.array(image.shape[:2])
-    # getting the remainder between the image size and the cell size
-    remainder = image_size % cell_size
-    # calculating the padding necessary so that img_size = alpha*cell_size
-    padding = cell_size - remainder
-    # return padding
-    return padding
-
-
-def split_padding(image, padding):
-    """
-    splits padding so that a portion is added to each side rather than all
-    on the bottom of the image
-    """
-    # initialize empty 0 high and low arrays
-    high = np.zeros(2)
-    low = np.zeros(2)
-
-    # for each dimension (y, x)
-    for i in range(len(padding)):
-        # if theres only 1 pixel to pad
-        if padding[i] <= 1:
-            high[i] = padding[i]
-        # if theres only two pixels to pad
-        elif padding[i] == 2:
-            half_padding = padding[i] // 2
-            high[i], low[i] = half_padding, half_padding
-        # if we need to start considering odd cases
-        elif padding[i] >= 3:
-            # get lower half
-            half_padding = padding[i] // 2
-            # get larger half (for odd numbers)
-            other_half = padding[i] - half_padding
-            # assign halves
-            high[i] = other_half
-            low[i] = half_padding
-    # convert to integers
-    high = high.astype("int")
-    low = low.astype("int")
-
-    # return pads
-    return high, low
-
-
-def fix_size(image):
-    """
-    fixes image size so that its area >= 64*128
-    """
-    # get image dimensions
-    img_y, img_x = image.shape[:2]
-    # get minimum dimensions
-    min_x, min_y = params.DATA_WINDOW_SIZE
-    # calculate image area
-    img_area = img_y * img_x
-    # calculate minimum area
-    min_area = min_x * min_y
-    # if the image area is less than the minimum
-    if img_area < min_area:
-        # get the ratio by which it is less than
-        area_ratio = min_area / img_area
-        # calculate the factor by which each dimension should be scaled
-        resize_factor = np.sqrt(area_ratio)
-        # scale each dimension
-        new_x, new_y = np.ceil(
-            resize_factor * np.array([img_x, img_y])).astype("int")
-    else:  # if the image is already large enough, leave as is
-        new_x, new_y = img_x, img_y
-    # return the resized image
-    return cv2.resize(image, (new_x, new_y), cv2.INTER_AREA)
-
-
-def fix_window(image, cell_size):
-    """
-    Fixes window size for HoG descriptor so that
-    > winArea >= 64*128
-    > (winSize - blockSize) % blockStride == 0
-    > (blockSize % cellSize) == 0
-    are all satisfied. Given blockStride = alpha * cellSize.
-
-    Input: image to be fixed, cellsize
-    Output: a corresponding padded image
-    """
-    sized_image = fix_size(image)
-    # get how much to pad
-    padding = determine_padding_necessary(sized_image, cell_size)
-    # split it appropriately
-    high, low = split_padding(sized_image, padding)
-    # pad image
-    return cv2.copyMakeBorder(sized_image, high[0], low[0], low[1], high[1], cv2.BORDER_REFLECT101)
-#   </section>End of Size Fixing
-
 # </section>End of Functions
-
-
-# <section>~~~~~~~~~~~~~~~~~~~~~~Class Transforms~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def get_class_number(class_name):
-    return params.DATA_CLASS_NAMES.get(class_name, 0)
-
-
-def get_class_name(class_code):
-    for name, code in params.DATA_CLASS_NAMES.items():
-        if code == class_code:
-            return name
-
-# return global the set of numerical class labels for the data set of images
-
-
-def get_class_labels(imgs_data):
-    class_labels = [img_data.class_number for img_data in imgs_data]
-    return np.int32(class_labels)
-# </section>End of Class Transforms
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
