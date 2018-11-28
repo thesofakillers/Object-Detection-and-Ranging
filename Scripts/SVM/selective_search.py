@@ -36,7 +36,7 @@ def perform_selective_search(image, ss_object, max_rects, min_area):
         np.greater(rects[:,3], rects[:,2]), #return only regions where h > width
         np.greater(rects[:,2] * rects[:,3], min_area) # return only sufficiently large regions
     )
-    
+
     # filtering out results
     accepted_rects = rects[mask]
 

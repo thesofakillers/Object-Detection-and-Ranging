@@ -11,7 +11,7 @@ Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW"""
 import os
 import numpy as np
 import cv2
-import params
+import SVM.params as params
 import math
 import random
 # </section>End of Imports

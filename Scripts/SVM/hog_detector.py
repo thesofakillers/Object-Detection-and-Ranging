@@ -11,8 +11,8 @@ Original Module Docstring^^^^ I slightly edited the script so that I can use it
 more modularly
 """
 from utils import *
-import params
-from selective_search import *
+import SVM.params as params
+from SVM.selective_search import *
 
 
 def hog_detect(image, svm_object, ss_object):
