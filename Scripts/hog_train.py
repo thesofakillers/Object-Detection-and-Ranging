@@ -70,44 +70,36 @@ def main():
     start = cv2.getTickCount()
 
     # define SVM parameters
-
     svm = cv2.ml.SVM_create()
-    svm.setType(cv2.ml.SVM_C_SVC)           # change this for multi-class
-    svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type (alteratives exist)
+    svm.setType(cv2.ml.SVM_C_SVC)           # set SVM type
+    svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type
 
     # get hog descriptor for each image and store in single global array
-
     samples = get_hog_descriptors(imgs_data)
 
     # get class label for each training image (i.e. 0 for other, 1 for pedestrian... can extend)
-
     class_labels = get_class_labels(imgs_data);
 
     # specify the termination criteria for the SVM training
-
     svm.setTermCriteria((cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, params.HOG_SVM_max_training_iterations, 1.e-06))
 
     # perform auto training for the SVM which will essentially perform grid
     # search over the set of parameters for the chosen kernel and the penalty
     # cost term, C (N.B. trainAuto() syntax is correct as of OpenCV 3.4.x)
-
     svm.trainAuto(samples, cv2.ml.ROW_SAMPLE, class_labels, kFold = 10, balanced = True);
 
     # save the trained SVM to file so that we can load it again for testing / detection
-
     svm.save(params.HOG_SVM_PATH)
 
     ############################################################################
     # measure performance of the SVM trained on the bag of visual word features
 
     # perform prediction over the set of examples we trained over
-
     output = svm.predict(samples)[1].ravel()
     error = (np.absolute(class_labels.ravel() - output).sum()) / float(output.shape[0])
 
     # we are succesful if our prediction > than random
     # e.g. for 2 class labels this would be 1/2 = 0.5 (i.e. 50%)
-
     if error < (1.0 / len(params.DATA_CLASS_NAMES)):
         print("Trained SVM obtained {}% training set error".format(round(error * 100,2)))
         print("-- meaining the SVM got {}% of the training examples correct!".format(round((1.0 - error) * 100,2)))

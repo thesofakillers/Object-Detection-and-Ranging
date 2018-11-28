@@ -10,10 +10,8 @@ Minor portions: based on fork from https://github.com/nextgensparx/PyBOW
 Original Module Docstring^^^^ I slightly edited the script so that I can use it
 more modularly
 """
-from sliding_window import *
 from utils import *
 import params
-import math
 from selective_search import *
 
 

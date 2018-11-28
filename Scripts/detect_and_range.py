@@ -10,7 +10,6 @@ by 2018/2019 Durham Uni CS candidate dzgf42
 import cv2
 import os
 import numpy as np
-import math
 from hog_detector import hog_detect
 import params
 from utils import *
