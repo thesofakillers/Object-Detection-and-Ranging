@@ -120,6 +120,28 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
                         centre_weighting, centre_sampling_offset, patch_size)
 
     return imgs_data
+
+
+def crop_image(image, start_height, end_height, start_width, end_width):
+    """
+    Crops an image according to passed start and end heights and widths with
+    the origin placed at the image top left
+    """
+    return image[start_height:end_height, start_width:end_width]
+
+
+def select_roi_maintain_size(image, start_height=0, start_width=0):
+    """
+    Essentially crops the image, but the shape remains the same. Cropped out areas
+    are simply filled in with black
+    """
+    # copying the image so to avoid editing the originalù
+    copy = np.copy(image)
+    # cropping vertically
+    copy[0:start_height, :] = 0
+    # cropping horizontally
+    copy[:, 0:start_width] = 0
+    return copy
 #   </section>End of Image Loading
 
 #   <section>~~~~~~~~~~~~~~~~~Class Transform Functions~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,14 +264,6 @@ def get_hog_descriptors(imgs_data):
     return np.float32(samples)
 
 
-def crop_image(image, start_height, end_height, start_width, end_width):
-    """
-    Crops an image according to passed start and end heights and widths with
-    the origin placed at the image top left
-    """
-    return image[start_height:end_height, start_width:end_width]
-
-
 def non_max_suppression_fast(boxes, overlapThresh):
     """
     perform basic non-maximal suppression of overlapping object detections
@@ -363,7 +377,7 @@ class ImageData(object):
 
         # # resizes the image to ensure that all images are the same size.
         img_hog = cv2.resize(
-             self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
+            self.img, (params.DATA_WINDOW_SIZE[0], params.DATA_WINDOW_SIZE[1]), interpolation=cv2.INTER_AREA)
 
         # computes hog descriptor utilizing built-in openCV
         self.hog_descriptor = self.hog.compute(img_hog)

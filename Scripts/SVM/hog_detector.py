@@ -19,12 +19,20 @@ def hog_detect(image, svm_object, ss_object):
     # initialize detections and corresponding detection_classes lists
     detections = []
     detection_classes = []
-    # for each re-scale of the image
-    region_proposals = perform_selective_search(image, ss_object, 1000, 3600)
 
+    # get rid of sky when performing selective search
+    roi = select_roi_maintain_size(image, 116)
+
+    # perform selective_search
+    region_proposals = perform_selective_search(roi, ss_object, 1000, 3600)
+
+    # loop through region proposals
     for region_proposal_rect in region_proposals:
+        # extract information from the rect
         x1, y1, w, h = region_proposal_rect
         x2, y2 = (x1 + w), (y1 + h)
+
+        # get the corresponding window
         region_proposal = crop_image(image, y1, y2, x1, x2)
 
         # create image data object from window
