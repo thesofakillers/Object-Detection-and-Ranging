@@ -13,6 +13,7 @@ import numpy as np
 from hog_detector import hog_detect
 import params
 from utils import *
+import sys
 # </section>End of Imports
 
 
@@ -31,7 +32,10 @@ directory_to_cycle_right = "right-images"   # edit this if needed
 
 # set this to a file timestamp to start from (empty is first example - outside lab)
 # set to timestamp to skip forward to
-skip_forward_file_pattern = ""
+try:
+    skip_forward_file_pattern = sys.argv[2]
+except IndexError:
+    skip_forward_file_pattern = ""
 
 # resolve full directory location of data set for left / right images
 full_path_directory_left = os.path.join(
