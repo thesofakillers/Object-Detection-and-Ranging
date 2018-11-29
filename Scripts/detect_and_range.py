@@ -10,8 +10,8 @@ by 2018/2019 Durham Uni CS candidate dzgf42
 import cv2
 import os
 import numpy as np
-from hog_detector import hog_detect
-import params
+from SVM.hog_detector import hog_detect
+import SVM.params as params
 from utils import *
 import sys
 # </section>End of Imports
