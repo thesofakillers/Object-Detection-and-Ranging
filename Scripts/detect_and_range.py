@@ -18,10 +18,10 @@ import sys
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~OpenCV settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#optimize when possible
-cv2.setUseOptimized(True);
-#try using multithreading when possible
-cv2.setNumThreads(4);
+# optimize when possible
+cv2.setUseOptimized(True)
+# try using multithreading when possible
+cv2.setNumThreads(4)
 # </section>End of Disparity Settings
 
 
@@ -183,44 +183,6 @@ def click_event(event, x, y, flags, param):
     depth = param
     if event == cv2.EVENT_LBUTTONDOWN:
         print(depth[y, x])
-
-
-def compute_depth(disparity, focal_length, distance_between_cameras):
-    """
-    Computes depth in meters
-    Input:
-    -Disparity in pixels
-    -Focal Length in pixels
-    -Distance between cameras in meters
-    Output:
-    -Depth in meters
-    """
-    with np.errstate(divide='ignore'):
-        depth = (focal_length * distance_between_cameras) / disparity
-    return depth
-
-
-def compute_single_depth(rectangle, disparity_image, focal_length, distance_between_cameras):
-    """
-    Given a rectangular area and a disparity image, estimates the general Depth
-    of that rectangular ROI
-    """
-    # extracting corners from rectangle (top left and bottom right)
-    x1, y1, x2, y2 = rectangle
-    # cropping and flattening disparity image so that we are only dealing with ROI values
-    rectangle_disparity = crop_image(disparity, y1, y2, x1, x2)
-    # sorting the disparity ROI by ascending disparity
-    rectangle_disparity = np.sort(rectangle_disparity, axis=None)
-    # keeping only the final third of the pixels (which we believe correspond to the detected object)
-    rectangle_disparity = rectangle_disparity[(
-        2 * len(rectangle_disparity)) // 3:]
-    # compute corresponding depths
-    rectangle_depths = compute_depth(
-        rectangle_disparity, focal_length, distance_between_cameras)
-    # return the average depth
-    return np.average(rectangle_depths)
-
-
 # </section>End of Functions Section
 
 
@@ -264,7 +226,8 @@ for filename_left in left_file_list:
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
         # get detections as rectangles and their respective classes
-        detection_rects, detection_classes = hog_detect(imgL, svm, ss)
+        detection_rects, detection_classes = hog_detect(
+            imgL, svm, ss, disparity)
 
         # get a single depth estimation for each detected object
         detection_depths = np.fromiter((compute_single_depth(
@@ -296,7 +259,7 @@ for filename_left in left_file_list:
             if det_depth < min_depth:
                 min_depth = det_depth
                 min_depth_class = det_class_name
-        #requested standard out
+        # requested standard out
         if min_depth >= 1000:
             min_depth = "Depth Irrelevant"
             units = ""
@@ -308,8 +271,8 @@ for filename_left in left_file_list:
         cv2.imshow('detected objects', imgL)
 
         # show disparity image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity
-                                 * (256 / max_disparity)).astype(np.uint8))
+        cv2.imshow("disparity", (disparity *
+                                 (256 / max_disparity)).astype(np.uint8))
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)

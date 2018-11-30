@@ -122,7 +122,10 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
     return imgs_data
 
 
-def crop_image(image, start_height, end_height, start_width, end_width):
+def crop_image
+
+
+(image, start_height, end_height, start_width, end_width):
     """
     Crops an image according to passed start and end heights and widths with
     the origin placed at the image top left
@@ -163,6 +166,45 @@ def get_class_labels(imgs_data):
     class_labels = [img_data.class_number for img_data in imgs_data]
     return np.int32(class_labels)
 #   </section>End of Class Transforms Functions
+
+#   <section>~~~~~~~~~~~~~~~~~~~~~~Depth Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def compute_depth(disparity, focal_length, distance_between_cameras):
+    """
+    Computes depth in meters
+    Input:
+    -Disparity in pixels
+    -Focal Length in pixels
+    -Distance between cameras in meters
+    Output:
+    -Depth in meters
+    """
+    with np.errstate(divide='ignore'):
+        depth = (focal_length * distance_between_cameras) / disparity
+    return depth
+
+
+def compute_single_depth(rectangle, disparity_image, focal_length, distance_between_cameras):
+    """
+    Given a rectangular area and a disparity image, estimates the general Depth
+    of that rectangular ROI
+    """
+    # extracting corners from rectangle (top left and bottom right)
+    x1, y1, x2, y2 = rectangle
+    # cropping and flattening disparity image so that we are only dealing with ROI values
+    rectangle_disparity = crop_image(disparity, y1, y2, x1, x2)
+    # sorting the disparity ROI by ascending disparity
+    rectangle_disparity = np.sort(rectangle_disparity, axis=None)
+    # keeping only the final third of the pixels (which we believe correspond to the detected object)
+    rectangle_disparity = rectangle_disparity[(
+        2 * len(rectangle_disparity)) // 3:]
+    # compute corresponding depths
+    rectangle_depths = compute_depth(
+        rectangle_disparity, focal_length, distance_between_cameras)
+    # return the average depth
+    return np.average(rectangle_depths)
+#   </section> End of Depth Functions
 
 #   <section>~~~~~~~~~~~~~~~~~Miscelleanous Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
