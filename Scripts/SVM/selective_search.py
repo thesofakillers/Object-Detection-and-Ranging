@@ -29,7 +29,7 @@ def perform_selective_search(image, ss_object, max_rects, min_area):
 
     # run selective search segmentation on input image
     rects = ss_object.process()  # one rect: x1, y1, w, h
-    rects = np.array(rects)[max_rects]
+    rects = np.array(rects)[:max_rects]
 
     # get mask for accepted rects
     mask = np.logical_and(
