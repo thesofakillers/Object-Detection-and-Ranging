@@ -122,10 +122,7 @@ def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags
     return imgs_data
 
 
-def crop_image
-
-
-(image, start_height, end_height, start_width, end_width):
+def crop_image(image, start_height, end_height, start_width, end_width):
     """
     Crops an image according to passed start and end heights and widths with
     the origin placed at the image top left
@@ -193,7 +190,7 @@ def compute_single_depth(rectangle, disparity_image, focal_length, distance_betw
     # extracting corners from rectangle (top left and bottom right)
     x1, y1, x2, y2 = rectangle
     # cropping and flattening disparity image so that we are only dealing with ROI values
-    rectangle_disparity = crop_image(disparity, y1, y2, x1, x2)
+    rectangle_disparity = crop_image(disparity_image, y1, y2, x1, x2)
     # sorting the disparity ROI by ascending disparity
     rectangle_disparity = np.sort(rectangle_disparity, axis=None)
     # keeping only the final third of the pixels (which we believe correspond to the detected object)
@@ -364,6 +361,30 @@ def non_max_suppression_fast(boxes, overlapThresh):
     # return only the indices of bounding boxes that were picked using the
     # integer data type
     return pick
+
+
+def area_depth_heuristic(height, width, pixel_height, pixel_width, distance, focal_length, mush_factor):
+    """
+    Returns whether the area_depth_heuristic is satisfied. Specifically, if a detected region is of small area,
+    then it is expected to be far away and viceversa. This function compares the area with the measured stereo
+    depth.
+
+    Inputs:
+    -height, width: real height and width of what is being observed
+    -pixel_height, pixel_width: height and width of observed object in image
+    -distance: measured stereo distance to the object in meters
+    -focal_length: camera focal length in pixels
+    -mush_factor: how much leeway to give in comparing. Usually between 0 and 1
+
+    Outputs:
+    -Boolean: True if satisfied, False if else.
+    """
+    expected_area = (height * width * focal_length**2) / distance**2
+    observed_area = pixel_width * pixel_height
+    if observed_area < (1 - mush_factor) * expected_area or observed_area > (1.2 + mush_factor) * expected_area:
+        return False
+    else:
+        return True
 #   </section>End of Miscelleanous
 
 # </section>End of Functions

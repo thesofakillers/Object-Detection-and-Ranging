@@ -225,16 +225,12 @@ for filename_left in left_file_list:
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
-        # get detections as rectangles and their respective classes
-        detection_rects, detection_classes = hog_detect(
-            imgL, svm, ss, disparity)
-
-        # get a single depth estimation for each detected object
-        detection_depths = np.fromiter((compute_single_depth(
-            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
+        # get detections as rectangles and their respective classes and depths
+        detection_rects, detection_classes, detection_depths = hog_detect(
+            imgL, svm, ss, disparity, camera_focal_length_px, stereo_camera_baseline_m)
 
         # <section>-------------------Display-----------
-        min_depth = 1000
+        min_depth = 100
         min_depth_class = "No Detections"
         units = " meters"
         # draw detections onto imgL
@@ -260,7 +256,7 @@ for filename_left in left_file_list:
                 min_depth = det_depth
                 min_depth_class = det_class_name
         # requested standard out
-        if min_depth >= 1000:
+        if min_depth >= 100:
             min_depth = "Depth Irrelevant"
             units = ""
         print(filename_left)
@@ -271,8 +267,8 @@ for filename_left in left_file_list:
         cv2.imshow('detected objects', imgL)
 
         # show disparity image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity *
-                                 (256 / max_disparity)).astype(np.uint8))
+        cv2.imshow("disparity", (disparity
+                                 * (256 / max_disparity)).astype(np.uint8))
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)
