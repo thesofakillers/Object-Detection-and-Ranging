@@ -1,3 +1,4 @@
+import numpy as np
 
 def mask_rcnn_detect(image, model, class_names):
     """
@@ -27,4 +28,7 @@ def mask_rcnn_detect(image, model, class_names):
     # get correspinding scores
     scores = r['scores']
 
-    return rects, class_ids, classes, scores
+    # thresholding heuristic
+    mask = np.greater_equal(scores, 0.9)
+
+    return rects[mask], class_ids[mask], classes[mask], scores[mask]
