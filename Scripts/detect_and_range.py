@@ -9,9 +9,8 @@ by 2018/2019 Durham Uni CS candidate dzgf42
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import cv2
 import os
+import sys
 import numpy as np
-from SVM.hog_detector import hog_detect
-import SVM.params as params
 from utils import *
 import sys
 # </section>End of Imports
@@ -58,43 +57,78 @@ stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 # </section>End of Disparity Settings
 
 
-# <section>~~~~~~~~~~~~~~~~~~~~Trained Model Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# <section>~~~~~~~~~~~~~~~~~~~~~~~~Model Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # specify classifier used as a string. Options include:
 # -"SVM"
 # -"Foo" (haven't done anything else yet)
-classifier_model = "SVM"
-# specify classifier used as a string. Options include:
-descriptor_used = "HoG"
+model = "MRCNN"
 
-if classifier_model == "SVM":
-    if descriptor_used == "HoG":
-        try:
-            # load SVM object once, outside of loop
-            svm = cv2.ml.SVM_load(params.HOG_SVM_PATH)
-        except:
-            print("Missing files - SVM!")
-            exit()
-#     elif descriptor_used == "foo":
-#         try:
-#             svm = cv2.ml.SVM_load(params.FOO_SVM_PATH)
-#         except:
-#             print("Missing files - SVM!");
-#             exit();
-#         .
-#         .
-#         .
-# elif classifier_model =="FOO":
-#     if descriptor_used == ..etc
-#     .
-#     .
-#     .
-#     etc
+if model == "SVM":
+    from SVM.hog_detector import hog_detect
+    import SVM.params as params
+    try:
+        # load SVM object once, outside of loop
+        svm = cv2.ml.SVM_load(params.HOG_SVM_PATH)
+    except:
+        print("Missing files - SVM!")
+        exit()
+elif model =="MRCNN":
+    import Deep.model as modellib
+    from Deep.mask_rcnn_detector import mask_rcnn_detect
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+    # Root directory of DeepL things, assuming the script is run from Scripts
+    ROOT_DIR = os.path.abspath("./Deep/")
+
+    # Import Mask RCNN
+    sys.path.append(ROOT_DIR)  # To find local version of the library
+
+    import coco # Import COCO config
+    # Directory to save logs and trained model
+    MODEL_DIR = os.path.join(ROOT_DIR, "logs")
+
+    # Local path to trained weights file
+    COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+
+    # see coco.CocoConfig and config.py for more details
+    class InferenceConfig(coco.CocoConfig):
+        # Set batch size to 1 since we'll be running inference on
+        # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+
+    # create config object
+    config = InferenceConfig()
+    # Create model object in inference mode. Pass config object from earlier
+    # Model dir here is arbitrary since we are not training
+    mask_rcnn = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
+    # Load weights trained on MS-COCO.
+    mask_rcnn.load_weights(COCO_MODEL_PATH, by_name=True)
+    # COCO Class names
+    # Index of the class in the list is its ID. For example, to get ID of
+    # the teddy bear class, use: class_names.index('teddy bear')
+    deep_class_names = np.array(['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+                   'bus', 'train', 'truck', 'boat', 'traffic light',
+                   'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
+                   'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
+                   'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+                   'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+                   'kite', 'baseball bat', 'baseball glove', 'skateboard',
+                   'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+                   'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+                   'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+                   'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+                   'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+                   'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
+                   'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+                   'teddy bear', 'hair drier', 'toothbrush'])
 # </section>
 
 
 # <section>~~~~~~~~~~~~~~~~~~~Selective Search Settings~~~~~~~~~~~~~~~~~~~~~~~~~~
-# create Selective Search Segmentation Object using default parameters
-ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+if model == "SVM":
+    # create Selective Search Segmentation Object using default parameters
+    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
 
 # </section>End of Disparity Settings
 
@@ -187,6 +221,8 @@ def click_event(event, x, y, flags, param):
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Colors = gen_N_colors(81)
+
 for filename_left in left_file_list:
     # <section>---------------Directory Checks---------------
     # skipping if requested
@@ -225,9 +261,21 @@ for filename_left in left_file_list:
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
+<<<<<<< HEAD
         # get detections as rectangles and their respective classes and depths
         detection_rects, detection_classes, detection_depths = hog_detect(
             imgL, svm, ss, disparity, camera_focal_length_px, stereo_camera_baseline_m)
+=======
+        # get detections as rectangles and their respective classes
+        if model =="SVM":
+            detection_rects, detection_classes = hog_detect(imgL, svm, ss)
+        elif model =="MRCNN":
+            detection_rects, detection_classes, detection_class_names, confidences = mask_rcnn_detect(imgL, mask_rcnn, deep_class_names)
+
+        # get a single depth estimation for each detected object
+        detection_depths = np.fromiter((compute_single_depth(
+            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
+>>>>>>> deep
 
         # <section>-------------------Display-----------
         min_depth = 100
@@ -238,20 +286,34 @@ for filename_left in left_file_list:
             # get rect
             det_rect = detection_rects[i]
             x1, y1, x2, y2 = det_rect
-            # get class number
-            det_class = int(detection_classes[i])
+
+            if model == "SVM":
+                # get class number
+                det_class = int(detection_classes[i])
+                # get class name based on class number
+                det_class_name = get_class_name(det_class)
+                # get color based on class number
+                color = Colors[det_class]
+            elif model == "MRCNN":
+                # get class name
+                det_class_name = detection_class_names[i]
+                # get color based on class number
+                color = Colors[detection_classes[i]]
+                # get confidence
+                confidence = str(round(confidences[i], 2))
+
+
             # get depth
             det_depth = round(detection_depths[i], 1)
-            # get color based on class number
-            color = params.COLORS[det_class]
-            # get class name based on class number
-            det_class_name = get_class_name(det_class)
             # draw colored rectangle where detected object is
             cv2.rectangle(imgL, (x1, y1),
                           (x2, y2), color, 2)
             # label rectangle
             cv2.putText(imgL, "{}: {} m".format(det_class_name,
-                                                det_depth), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.3, color)
+                                                det_depth), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color)
+            if model == "MRCNN":
+                # add confidence label
+                cv2.putText(imgL, "{}".format(confidence), (x1+4, y1 + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color)
             if det_depth < min_depth:
                 min_depth = det_depth
                 min_depth_class = det_class_name

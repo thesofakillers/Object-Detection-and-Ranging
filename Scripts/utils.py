@@ -14,6 +14,7 @@ import cv2
 import SVM.params as params
 import math
 import random
+import colorsys
 # </section>End of Imports
 
 
@@ -204,6 +205,22 @@ def compute_single_depth(rectangle, disparity_image, focal_length, distance_betw
 #   </section> End of Depth Functions
 
 #   <section>~~~~~~~~~~~~~~~~~Miscelleanous Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def gen_N_colors(N):
+    """
+    Input: integer N describing the number of desired distinct colors
+    Output: List of tuples representing N distinct colors in BGR space
+    """
+    # get unique colors from hsv space and convert to rgb
+    rgb_colors = [colorsys.hsv_to_rgb(h, np.random.random(), 0.85)
+                  for h in np.linspace(0, 1, N)]
+    # convert to bgr
+    bgr_colors = np.fliplr(rgb_colors)
+    # shuffle
+    np.random.shuffle(bgr_colors)
+    # return unnormalized array
+    return 255*bgr_colors
 
 
 def stack_array(arr):
