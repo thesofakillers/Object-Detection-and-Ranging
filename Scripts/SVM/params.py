@@ -45,7 +45,7 @@ DATA_training_sample_count_pos = 5
 # class names - N.B. ordering of 0, 1 for neg/pos = order of paths
 DATA_CLASS_NAMES = {
     "other": 0,
-    "pedestrian": 1
+    "person": 1
 }
 
 #<section>~~~~~~~~~~~~~~~~~~~~~~~~~~~HoG Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,17 +64,15 @@ HOG_DESC_gammaCorrection = True # whether or not to employ gamma correction
     #</section>
 
     #<section>~~~~~~~~~~~~~~~~~~~HoG SVM Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-HOG_SVM_PATH = "../Write/"+sys.argv[1]
+try:
+    HOG_SVM_PATH = "../Write/"+sys.argv[1]
 
-HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
-HOG_SVM_max_training_iterations = 500  # stop training after max iterations
-HOG_SVM_DEGREE = 3 #if poly kernel used
+    HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
+    HOG_SVM_max_training_iterations = 500  # stop training after max iterations
+    HOG_SVM_DEGREE = 3 #if poly kernel used
+except Exception as e:
+    pass    # if it's not being passed, then either we are using MRCNN or error
+            # is handled elsewhere
     #</section>
 
 #</section>
-#for different classes
-COLORS = [(0, 0, 0),
-          (255, 100, 0), #lighter blue
-          (0, 255, 0), #green
-          (0, 0, 255), #red
-          (255, 255, 255)] #white
