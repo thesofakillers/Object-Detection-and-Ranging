@@ -30,7 +30,7 @@ directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 
 # set to timestamp to skip forward to from terminal
-skip_forward_file_pattern = sys.argv[1]
+skip_forward_file_pattern = sys.argv[2]
 if skip_forward_file_pattern == "start":
     skip_forward_file_pattern = ""
 
@@ -59,7 +59,7 @@ stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 # specify classifier used as a string. Options include:
 # -"SVM"
 # -"Foo" (haven't done anything else yet)
-model = "SVM"
+model = sys.argv[1]
 
 if model == "SVM":
     from SVM.hog_detector import hog_detect
