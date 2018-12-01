@@ -61,7 +61,7 @@ stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 # specify classifier used as a string. Options include:
 # -"SVM"
 # -"Foo" (haven't done anything else yet)
-model = "MRCNN"
+model = "SVM"
 
 if model == "SVM":
     from SVM.hog_detector import hog_detect
@@ -264,14 +264,15 @@ for filename_left in left_file_list:
 
         # get detections as rectangles and their respective classes
         if model == "SVM":
-            detection_rects, detection_classes = hog_detect(imgL, svm, ss)
+            detection_rects, detection_classes, detection_depths = hog_detect(
+                imgL, svm, ss, disparity, camera_focal_length_px, stereo_camera_baseline_m)
         elif model == "MRCNN":
             detection_rects, detection_classes, detection_class_names, confidences = mask_rcnn_detect(
                 imgL, mask_rcnn, deep_class_names)
+            # get a single depth estimation for each detected object
+            detection_depths = np.fromiter((compute_single_depth(
+                rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
 
-        # get a single depth estimation for each detected object
-        detection_depths = np.fromiter((compute_single_depth(
-            rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
 
         # <section>-------------------Display-----------
         min_depth = 100
@@ -325,8 +326,8 @@ for filename_left in left_file_list:
         cv2.imshow('detected objects', imgL)
 
         # show disparity image (scaling it to the full 0->255 range)
-        cv2.imshow("disparity", (disparity
-                                 * (256 / max_disparity)).astype(np.uint8))
+        cv2.imshow("disparity", (disparity *
+                                 (256 / max_disparity)).astype(np.uint8))
 
         # #listen for mouse clicks and print depth where clicked
         # cv2.setMouseCallback("disparity", click_event, param = depth)

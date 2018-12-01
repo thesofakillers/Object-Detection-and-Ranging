@@ -61,7 +61,7 @@ def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, dist
             class_number = result[0]
 
             # if we get a detection, then record it
-            if class_number == params.DATA_CLASS_NAMES["pedestrian"]:
+            if class_number == params.DATA_CLASS_NAMES["person"]:
                 rect = x1, y1, x2, y2
                 # append the rect to the list of detections
                 detections.append(rect)
