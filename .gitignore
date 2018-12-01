@@ -112,3 +112,4 @@ Data/
 test.py
 
 core
+*.ipynb
