@@ -65,7 +65,7 @@ HOG_DESC_gammaCorrection = True # whether or not to employ gamma correction
 
     #<section>~~~~~~~~~~~~~~~~~~~HoG SVM Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 try:
-    HOG_SVM_PATH = "../Write/"+sys.argv[1]
+    HOG_SVM_PATH = "../Write/"+sys.argv[2]
 
     HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
     HOG_SVM_max_training_iterations = 500  # stop training after max iterations

@@ -29,11 +29,9 @@ master_path_to_dataset = "../Data/TTBB-durham-02-10-17-sub10"  # where is the da
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 
-# set this to a file timestamp to start from (empty is first example - outside lab)
-# set to timestamp to skip forward to
-try:
-    skip_forward_file_pattern = sys.argv[2]
-except IndexError:
+# set to timestamp to skip forward to from terminal
+skip_forward_file_pattern = sys.argv[1]
+if skip_forward_file_pattern == "start":
     skip_forward_file_pattern = ""
 
 # resolve full directory location of data set for left / right images
