@@ -72,7 +72,7 @@ if model == "SVM":
     except:
         print("Missing files - SVM!")
         exit()
-elif model =="MRCNN":
+elif model == "MRCNN":
     import Deep.model as modellib
     from Deep.mask_rcnn_detector import mask_rcnn_detect
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -83,7 +83,7 @@ elif model =="MRCNN":
     # Import Mask RCNN
     sys.path.append(ROOT_DIR)  # To find local version of the library
 
-    import coco # Import COCO config
+    import coco  # Import COCO config
     # Directory to save logs and trained model
     MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 
@@ -101,27 +101,28 @@ elif model =="MRCNN":
     config = InferenceConfig()
     # Create model object in inference mode. Pass config object from earlier
     # Model dir here is arbitrary since we are not training
-    mask_rcnn = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
+    mask_rcnn = modellib.MaskRCNN(
+        mode="inference", model_dir=MODEL_DIR, config=config)
     # Load weights trained on MS-COCO.
     mask_rcnn.load_weights(COCO_MODEL_PATH, by_name=True)
     # COCO Class names
     # Index of the class in the list is its ID. For example, to get ID of
     # the teddy bear class, use: class_names.index('teddy bear')
     deep_class_names = np.array(['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
-                   'bus', 'train', 'truck', 'boat', 'traffic light',
-                   'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
-                   'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
-                   'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
-                   'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-                   'kite', 'baseball bat', 'baseball glove', 'skateboard',
-                   'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
-                   'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-                   'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-                   'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
-                   'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
-                   'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
-                   'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
-                   'teddy bear', 'hair drier', 'toothbrush'])
+                                 'bus', 'train', 'truck', 'boat', 'traffic light',
+                                 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
+                                 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
+                                 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+                                 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+                                 'kite', 'baseball bat', 'baseball glove', 'skateboard',
+                                 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+                                 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+                                 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+                                 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+                                 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+                                 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
+                                 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+                                 'teddy bear', 'hair drier', 'toothbrush'])
 # </section>
 
 
@@ -261,21 +262,16 @@ for filename_left in left_file_list:
         # cropping left image to match disparity & depth sizes
         imgL = crop_image(imgL, 0, 390, 135, original_width)
 
-<<<<<<< HEAD
-        # get detections as rectangles and their respective classes and depths
-        detection_rects, detection_classes, detection_depths = hog_detect(
-            imgL, svm, ss, disparity, camera_focal_length_px, stereo_camera_baseline_m)
-=======
         # get detections as rectangles and their respective classes
-        if model =="SVM":
+        if model == "SVM":
             detection_rects, detection_classes = hog_detect(imgL, svm, ss)
-        elif model =="MRCNN":
-            detection_rects, detection_classes, detection_class_names, confidences = mask_rcnn_detect(imgL, mask_rcnn, deep_class_names)
+        elif model == "MRCNN":
+            detection_rects, detection_classes, detection_class_names, confidences = mask_rcnn_detect(
+                imgL, mask_rcnn, deep_class_names)
 
         # get a single depth estimation for each detected object
         detection_depths = np.fromiter((compute_single_depth(
             rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
->>>>>>> deep
 
         # <section>-------------------Display-----------
         min_depth = 100
@@ -302,7 +298,6 @@ for filename_left in left_file_list:
                 # get confidence
                 confidence = str(round(confidences[i], 2))
 
-
             # get depth
             det_depth = round(detection_depths[i], 1)
             # draw colored rectangle where detected object is
@@ -313,7 +308,8 @@ for filename_left in left_file_list:
                                                 det_depth), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color)
             if model == "MRCNN":
                 # add confidence label
-                cv2.putText(imgL, "{}".format(confidence), (x1+4, y1 + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color)
+                cv2.putText(imgL, "{}".format(confidence), (x1 + 4,
+                                                            y1 + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color)
             if det_depth < min_depth:
                 min_depth = det_depth
                 min_depth_class = det_class_name
