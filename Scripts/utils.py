@@ -1,7 +1,7 @@
 """
-functionality: utility functions for shared across different scripts
+functionality: utility functions for shared usage across different scripts
 
-Largely (very heavily) Based on work by: (c) 2018 Toby Breckon, Dept. Computer Science,
+Largely Based on work by: (c) 2018 Toby Breckon, Dept. Computer Science,
 Durham University, UK
 License: MIT License
 
@@ -27,7 +27,7 @@ show_images_as_they_are_sampled = False
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#   <section>~~~~~~~~~~~~~~~~~~~~~Timing Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   <section>~~~~~~~~~~~~~~Timing Functions By T Breckon~~~~~~~~~~~~~~~~~~~~~~~~
 def get_elapsed_time(start):
     return (cv2.getTickCount() - start) / cv2.getTickFrequency()
 
@@ -50,12 +50,10 @@ def print_duration(start):
 #   <section>~~~~~~~~~~~~~~~~~Image Handling Functions~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def read_all_images(path):
+def read_all_images(path): #TBreckon
     """
-    reads all the images in a given folder path and returns the results
-
-    for obvious reasons this will break with a very large dataset as you will run
-    out of memory - so an alternative approach may be required in that case
+    reads all the images in a given folder path and returns the list containing
+    them. Will break with a very large datasets due to memory issues
     """
     images_path = [os.path.join(path, f) for f in os.listdir(path)]
     images = []
@@ -69,7 +67,7 @@ def read_all_images(path):
     return images
 
 
-def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)):
+def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=False, centre_sampling_offset=10, patch_size=(64, 128)): #TBreckon
     """
     add images from a specified path to the dataset, adding the appropriate
     class/type name and optionally adding up to N samples of a specified size with
@@ -89,7 +87,6 @@ def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=Fal
         # generate up to N sample patches for each sample image
         # if zero samples is specified then generate_patches just returns
         # the original image (unchanged, unsampled) as [img]
-
         for img_patch in generate_patches(img, samples, centre_weighting, centre_sampling_offset, patch_size):
 
             if show_additional_process_information:
@@ -108,7 +105,7 @@ def load_image_path(path, class_name, imgs_data, samples=0, centre_weighting=Fal
     return imgs_data
 
 
-def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)):
+def load_images(paths, class_names, sample_set_sizes, use_centre_weighting_flags, centre_sampling_offset=10, patch_size=(64, 128)): #TBreckon
     """load image data from specified paths"""
 
     imgs_data = []  # type: list[ImageData]
@@ -134,7 +131,7 @@ def crop_image(image, start_height, end_height, start_width, end_width):
 def select_roi_maintain_size(image, start_height=0, start_width=0):
     """
     Essentially crops the image, but the shape remains the same. Cropped out areas
-    are simply filled in with black
+    are simply filled in with black. This is to accomodate openCV's Sel. Search
     """
     # copying the image so to avoid editing the originalù
     copy = np.copy(image)
@@ -143,21 +140,19 @@ def select_roi_maintain_size(image, start_height=0, start_width=0):
     # cropping horizontally
     copy[:, 0:start_width] = 0
     return copy
-#   </section>End of Image Loading
+#   </section>End of Image Handling
 
 #   <section>~~~~~~~~~~~~~~~~~Class Transform Functions~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def get_class_number(class_name):
+def get_class_number(class_name): #TBreckon
     return params.DATA_CLASS_NAMES.get(class_name, 0)
 
 
-def get_class_name(class_code):
+def get_class_name(class_code): #TBreckon
     for name, code in params.DATA_CLASS_NAMES.items():
         if code == class_code:
             return name
-
-# return global the set of numerical class labels for the data set of images
 
 
 def get_class_labels(imgs_data):
@@ -178,7 +173,8 @@ def compute_depth(disparity, focal_length, distance_between_cameras):
     Output:
     -Depth in meters
     """
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore'): #ignore division by 0
+        # standard depth and disparity formula
         depth = (focal_length * distance_between_cameras) / disparity
     return depth
 
@@ -223,7 +219,7 @@ def gen_N_colors(N):
     return 255*bgr_colors
 
 
-def stack_array(arr):
+def stack_array(arr): #TBreckon
     stacked_arr = np.array([])
     for item in arr:
         # Only stack if it is not empty
@@ -236,7 +232,7 @@ def stack_array(arr):
 
 
 def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
-                     centre_sampling_offset=10, patch_size=(64, 128)):
+                     centre_sampling_offset=10, patch_size=(64, 128)): #TBreckon
     """
     generates a set of random sample patches from a given image of a specified size
     with an optional flag just to train from patches centred around the centre of the image
@@ -313,14 +309,14 @@ def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
         return patches
 
 
-def get_hog_descriptors(imgs_data):
+def get_hog_descriptors(imgs_data): #TBreckon
     """return the global set of hog descriptors for the data set of images"""
     samples = stack_array([[img_data.hog_descriptor]
                            for img_data in imgs_data])
     return np.float32(samples)
 
 
-def non_max_suppression_fast(boxes, overlapThresh):
+def non_max_suppression_fast(boxes, overlapThresh): #TBreckon
     """
     perform basic non-maximal suppression of overlapping object detections
     """
@@ -396,8 +392,11 @@ def area_depth_heuristic(height, width, pixel_height, pixel_width, distance, foc
     Outputs:
     -Boolean: True if satisfied, False if else.
     """
+    # expected area occupied by an object with passed size at passed distance
     expected_area = (height * width * focal_length**2) / distance**2
+    # observed area
     observed_area = pixel_width * pixel_height
+    # heuristic
     if observed_area < (1 - mush_factor) * expected_area or observed_area > (1.2 + mush_factor) * expected_area:
         return False
     else:
@@ -408,7 +407,7 @@ def area_depth_heuristic(height, width, pixel_height, pixel_width, distance, foc
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class ImageData(object):
+class ImageData(object): #TBreckon
     """image data class object that contains the images, descriptors and bag of word
     histograms"""
 
