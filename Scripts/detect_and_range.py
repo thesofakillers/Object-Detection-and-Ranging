@@ -8,6 +8,8 @@ by 2018/2019 Durham Uni CS candidate dzgf42
 """
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~Imports~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import cv2
+time_to_setup = cv2.getTickCount()
+print("setting up...") # letting the user now there's an inital hang because of setup
 import os
 import sys
 import numpy as np
@@ -220,7 +222,9 @@ def click_event(event, x, y, flags, param):
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Colors = gen_N_colors(81)
+Colors = gen_N_colors(81) #get N different colors for the N possible classes
+
+print_duration(time_to_setup) #print how long it took to set up
 
 for filename_left in left_file_list:
     # <section>---------------Directory Checks---------------
