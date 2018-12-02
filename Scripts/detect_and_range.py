@@ -24,7 +24,7 @@ print("setting up...")
 import os
 import sys
 import numpy as np
-from utils import *
+import utils
 #potential additional imports later found under "Model Settings" section
 # </section>End of Imports
 
@@ -114,9 +114,6 @@ elif model == "MRCNN":
     # Local path to trained weights file
     COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
-    # Load weights trained on MS-COCO.
-    mask_rcnn.load_weights(COCO_MODEL_PATH, by_name=True)
-
     # creating subsclass to quickly create custom config
     class InferenceConfig(coco.CocoConfig):
         # see coco.CocoConfig and config.py for more details
@@ -137,6 +134,9 @@ elif model == "MRCNN":
     # MODEL_DIR here is arbitrary since we are not training
     mask_rcnn = modellib.MaskRCNN(
         mode="inference", model_dir=MODEL_DIR, config=config)
+
+    # Load weights trained on MS-COCO.
+    mask_rcnn.load_weights(COCO_MODEL_PATH, by_name=True)
     # </section>end of MRCNN Model Settings
 # </section> end of Model Settings
 
@@ -226,16 +226,16 @@ def compute_disparity(left_image, right_image, maximum_disparity, noise_filter, 
     disparity_scaled = (disparity / 16.).astype(np.uint8)
 
     # crop area not seen by *both* cameras and and area with car bonnet
-    disparity_scaled = crop_image(disparity_scaled, 0, 390, 135, width)
+    disparity_scaled = utils.crop_image(disparity_scaled, 0, 390, 135, width)
 
     return disparity_scaled
 # </section>End of Functions Section
 
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~~~Main~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Colors = gen_N_colors(81) #get N different colors for the N possible classes
+Colors = utils.gen_N_colors(81) #get N different colors for the N possible classes
 
-print_duration(time_to_setup) #print how long it took to set up
+utils.print_duration(time_to_setup) #print how long it took to set up
 
 # cycle through the images
 for filename_left in left_file_list:
@@ -269,7 +269,7 @@ for filename_left in left_file_list:
             imgL, imgR, max_disparity, 5, original_width)
 
         # cropping left image to match disparity & depth sizes
-        imgL = crop_image(imgL, 0, 390, 135, original_width)
+        imgL = utils.crop_image(imgL, 0, 390, 135, original_width)
 
         # get detections as rectangles and their respective characteristics
         # different course of action depending on model
@@ -281,8 +281,8 @@ for filename_left in left_file_list:
             # detections, class numbers, names, confidences computed by mask_rcnn_detect
             detection_rects, detection_classes, detection_class_names, confidences = mask_rcnn_detect(
                 imgL, mask_rcnn, deep_class_names)
-            # get a single depth estimation for each detected object (from utils.py)
-            detection_depths = np.fromiter((compute_single_depth(
+            # get a single depth estimation for each detected object
+            detection_depths = np.fromiter((utils.compute_single_depth(
                 rect, disparity, camera_focal_length_px, stereo_camera_baseline_m) for rect in detection_rects), float)
 
 
@@ -302,7 +302,7 @@ for filename_left in left_file_list:
                 # get class number
                 det_class = int(detection_classes[i])
                 # get class name based on class number
-                det_class_name = get_class_name(det_class)
+                det_class_name = utils.get_class_name(det_class)
                 # get color based on class number
                 color = Colors[det_class]
             elif model == "MRCNN":
