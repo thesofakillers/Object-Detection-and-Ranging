@@ -33,20 +33,22 @@ for filename_left in left_file_list:
 
 # <section>~~~~~~~~~~~~~~~~~~~~~~~~~~Accuracy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-Loops through 63 random pics and saves them to a folder in the desktop with
+Loops through 23 random pics and saves them to a folder in the desktop with
 the number of detections in the file title. A Human is then to go through these
-63 pictures and record how many of them are false positives
+23 pictures and record how many of them are false positives
 """
-np.shuffle(left_file_list) # to get random pictures
-counter = 0 #for titiling the images we write
-for filename_left in left_file_list[::23]: #every 23 pictures (total 63 pics)
-    print("{}/{}".format(str(counter), str(63))) # to see progress
+np.random.shuffle(left_file_list) # to get random pictures
+counter = 1 #for titiling the images we write
+for filename_left in left_file_list[::63]: #every 63 pictures (total 23 pics)
+    print("{}/{}".format(str(counter), str(23))) # to see progress
     # do the usual detecting
     # .
     # .
     # .
     # instead of imshow("detected objects", imgL)
     n_of_detections = len(detection_classes)
-    cv2.imwrite("~/Desktop/CV_Evaluation/{}counter_{}det.png".format(str(counter), str(n_of_detections)), imgL)
+    path = "/home/thesofakillers/Desktop/CV_Evaluation"
+    total_path = os.path.join(path, "{}counter_{}det.png".format(str(counter), str(n_of_detections)))
+    cv2.imwrite(total_path, imgL)
     counter += 1
 # </section>  End of Accuracy
