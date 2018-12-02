@@ -1,20 +1,19 @@
-################################################################################
+"""
+functionality: parameter settings for detection algorithm training/testing (Mostly for SVM)
 
-# functionality: parameter settings for detection algorithm training/testing
+This version: Modified version on work by (c) 2018 Toby Breckon,
+Dept. Computer Science, Durham University, UK
+License: MIT License
 
-# This version: (c) 2018 Toby Breckon, Dept. Computer Science, Durham University, UK
-# License: MIT License
-
-# Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW
-
-################################################################################
+Origin acknowledgements: forked from https://github.com/nextgensparx/PyBOW
+"""
 
 import cv2
 import os
 import sys
 
 ################################################################################
-# settings for datsets in general
+# settings for datasets in general (path to directory containing Train and Test)
 master_path_to_dataset = "../Data/Training"
 
 # data location - training examples
