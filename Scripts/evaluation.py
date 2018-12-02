@@ -16,16 +16,16 @@ time_to_setup = cv2.getTickCount()
 # Functions
 # Various settings etc
 # just before for loop
-print_duration(time_per_frame)
+print_duration(time_to_setup)
 
-np.shuffle(left_file_list) # to get random pictures
+np.random.shuffle(left_file_list) # to get random pictures
 
 for filename_left in left_file_list:
     time_per_frame = cv2.getTickCount()
     # .
     # .
-    # .
-    # .
+    #   comment out cv2.imshow
+    # . comment out cv2.keywait
     print_duration(time_per_frame)
     # . END OF 1 ITERATION
 # </section>  End of Timing
