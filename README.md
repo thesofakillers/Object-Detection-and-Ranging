@@ -26,6 +26,7 @@ It should be noted that if one only wishes to run the SVM implementation, then t
     -   [OpenCV 3.4.x](https://opencv.org/opencv-3-4.html)
     -   [tensorflow-gpu](https://www.tensorflow.org/)
     -   [keras](https://keras.io/)
+
 On Durham University DUDE machines, running `opencv3-4.init` and `tensorflow.init` before proceeding with the rest of the installation should cover it.
 
 2.  Then `cd` into [Scripts/Deep/](Scripts/Deep/) and run `pip3 install --user -r requirements.txt`.
