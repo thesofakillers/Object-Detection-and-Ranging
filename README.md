@@ -31,7 +31,8 @@ On Durham University DUDE machines, running `opencv3-4.init` and `tensorflow.ini
 
 2.  Then `cd` into [Scripts/Deep/](Scripts/Deep/) and run `pip3 install --user -r requirements.txt`.
 3.  In the same directory, run `python3 setup.py install --user`.
-4.  Finally, in any directory, run `pip3 install --user pycocotools`.
+4.  In any directory, run `pip3 install --user pycocotools`.
+5.  Finally, if not already present in [Scripts/Deep/](Scripts/Deep/), download the pre-trained weights `mask_rcnn_coco.h5` from [here](https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5) (should already be there for Durham Uni Submission)
 
 ## Usage
 
