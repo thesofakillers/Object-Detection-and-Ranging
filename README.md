@@ -10,11 +10,11 @@ A few directories/files are not committed to this repository due to their unwiel
 
 This repository offers two options of object detection.
 
-The first utilizes [HoG descriptors](https://lear.inrialpes.fr/people/triggs/pubs/Dalal-cvpr05.pdf) fed into a Support Vector Machine Classifier, utilizing [Selective Search](https://koen.me/research/selectivesearch/) for region proposals. This is where the bulk of the work went into and can detect persons in the images.
+The first utilizes [HoG descriptors](https://lear.inrialpes.fr/people/triggs/pubs/Dalal-cvpr05.pdf) fed into a Support Vector Machine Classifier, utilizing [Selective Search](https://koen.me/research/selectivesearch/) for region proposals. This is where the bulk of the work went into and can detect persons in the images. [This repo](https://github.com/tobybreckon/python-bow-hog-object-detection) had great influence on this section of the work.
 
 The second utilizes a [MaskRCNN](https://arxiv.org/abs/1703.06870) implementation taken from [this repo](https://github.com/matterport/Mask_RCNN), which can detect 80 different classes of objects via weights pre-trained on the [COCO dataset](http://cocodataset.org/#home). Most of the work with regards to this second option was in integrating it into the main script, [detect_and_range.py](Scripts/detect_and_range.py).
 
-Both options utilize the same method for estimating the depth to the detections, namely [SGBM](https://ieeexplore.ieee.org/document/4359315).
+Both options utilize the same method for estimating the depth to the detections, namely [SGBM](https://ieeexplore.ieee.org/document/4359315). This section of the work borrows a lot from [this repo](https://github.com/tobybreckon/stereo-disparity).
 
 ## Getting Set up
 
@@ -22,11 +22,12 @@ This project was built in [Python 3.5](https://www.python.org/downloads/release/
 
 It should be noted that if one only wishes to run the SVM implementation, then they only need to ensure that OpenCV 3.4.x is installed. To try out the MaskRCNN implementation, please proceed with the following steps
 
-1.  Please also ensure that the following modules are installed:
+1.  Ensure that the following modules are installed:
     -   [OpenCV 3.4.x](https://opencv.org/opencv-3-4.html)
     -   [tensorflow-gpu](https://www.tensorflow.org/)
     -   [keras](https://keras.io/)
-        On Durham University DUDE machines, running `opencv3-4.init` and `tensorflow.init` before proceeding with the rest of the installation should cover it.
+On Durham University DUDE machines, running `opencv3-4.init` and `tensorflow.init` before proceeding with the rest of the installation should cover it.
+
 2.  Then `cd` into [Scripts/Deep/](Scripts/Deep/) and run `pip3 install --user -r requirements.txt`.
 3.  In the same directory, run `python3 setup.py install --user`.
 4.  Finally, in any directory, run `pip3 install --user pycocotools`.
@@ -50,7 +51,6 @@ This is done via the main script, [detect_and_range.py](Scripts/detect_and_range
 
 -   Set the path to the directory containing the stereo images in line 44 of [detect_and_range.py](Scripts/detect_and_range.py) under the variable name `master_path_to_dataset`
 -   For SVM, there are different trained models saved in [Write/](Write/). Currently what we consider the best from our training is set for usage. To change the model to be used, set it in line 66 of [params.py](Scripts/SVM/params.py) under the variable name `HOG_SVM_PATH_SAVED`.
-    ### Training
 
 ### Training
 Custom training can be performed for the SVM implementation.
