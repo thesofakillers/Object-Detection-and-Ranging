@@ -2,8 +2,11 @@
 -Detects pedestrians using HoG + SVM or other classes too with MaskRCNN
 -Estimates the distance to them using and SGBM.
 
-General Usage is (into terminal):
-'python detect_and_range.py <model type> <start_image> <trained_xml_if_SVM>'
+General Usage is (into terminal from the Scripts/ directory):
+'python detect_and_range.py <model type> <start_image>'
+where <model_type> can be 'SVM' or 'MRCNN'
+and <start_image> can be "start" (indicating from the start) or the name
+of the image to start from
 
 Heavily Based off of scripts made by Prof Toby Breckon of Durham University
 https://github.com/tobybreckon/python-bow-hog-object-detection
