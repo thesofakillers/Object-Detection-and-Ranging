@@ -10,9 +10,12 @@
 # Minor portions: based on fork from https://github.com/nextgensparx/PyBOW
 
 ################################################################################
-
 import cv2
-from utils import *
+import params
+import sys
+import os
+sys.path.append(os.path.abspath("./"))
+import utils
 
 ################################################################################
 
@@ -32,7 +35,7 @@ def main():
 
     # build a list of class names automatically from our dictionary of class (name,number) pairs
 
-    class_names = [get_class_name(class_number) for class_number in range(len(params.DATA_CLASS_NAMES))]
+    class_names = [utils.get_class_name(class_number) for class_number in range(len(params.DATA_CLASS_NAMES))]
 
     # specify number of sub-window samples to take from each positive and negative
     # example image in the data set
@@ -48,11 +51,11 @@ def main():
 
     # perform image loading
 
-    imgs_data = load_images(paths, class_names, sampling_sizes, sample_from_centre,
+    imgs_data = utils.load_images(paths, class_names, sampling_sizes, sample_from_centre,
                             params.DATA_WINDOW_OFFSET_FOR_TRAINING_SAMPLES, params.DATA_WINDOW_SIZE);
 
     print(("Loaded {} image(s)".format(len(imgs_data))))
-    print_duration(start)
+    utils.print_duration(start)
 
     ############################################################################
     # perform HOG feature extraction
@@ -61,7 +64,7 @@ def main():
     start = cv2.getTickCount()
     #each HoG descriptor is stored in its respective img_data instance
     [img_data.compute_hog_descriptor() for img_data in imgs_data]
-    print_duration(start)
+    utils.print_duration(start)
 
     ############################################################################
     # train an SVM based on these norm_features
@@ -75,10 +78,10 @@ def main():
     svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type
 
     # get hog descriptor for each image and store in single global array
-    samples = get_hog_descriptors(imgs_data)
+    samples = utils.get_hog_descriptors(imgs_data)
 
     # get class label for each training image (i.e. 0 for other, 1 for pedestrian... can extend)
-    class_labels = get_class_labels(imgs_data);
+    class_labels = utils.get_class_labels(imgs_data);
 
     # specify the termination criteria for the SVM training
     svm.setTermCriteria((cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, params.HOG_SVM_max_training_iterations, 1.e-06))
@@ -89,7 +92,7 @@ def main():
     svm.trainAuto(samples, cv2.ml.ROW_SAMPLE, class_labels, kFold = 10, balanced = True);
 
     # save the trained SVM to file so that we can load it again for testing / detection
-    svm.save(params.HOG_SVM_PATH)
+    svm.save(params.HOG_SVM_PATH_TRAIN)
 
     ############################################################################
     # measure performance of the SVM trained on the bag of visual word features
@@ -106,7 +109,7 @@ def main():
     else:
         print("Failed to train SVM. {}% error".format(round(error * 100,2)))
 
-    print_duration(start)
+    utils.print_duration(start)
 
     print(("Finished training HoG detector. {}".format(format_time(get_elapsed_time(program_start)))))
 
