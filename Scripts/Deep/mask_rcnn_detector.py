@@ -1,11 +1,24 @@
+"""
+Performs MaskRCNN detection on an inputted image and returns detection.
+This particular module made by myself.
+"""
+
 import numpy as np
 
 def mask_rcnn_detect(image, model, class_names):
     """
+    Detects objects in a given image using MaskRCNN and returns them
+
     Inputs:
     -image: np array representing an image
     -model: Mask RCNN model object as defined in model.py
     -class_names: list of class names, with indices corresponding to their codes
+
+    Returns:
+    -rects: rectangles describing detection boxes
+    -class_ids: class numerical ids of each detection
+    -classes: class names of each detection
+    -scores: confidence scores of each detection
     """
     # Run detection on the image
     results = model.detect([image], verbose=0)
