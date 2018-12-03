@@ -14,14 +14,14 @@ def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, dist
     descriptors. Returns detected object rectangles, their class codes, and their
     depths in the image
 
-    Inputs:
+    Input(s):
     -image: numpy array representing an image
     -svm_object: cv2.ml.SVM_load(<trained_xml_file>) SVM object
     -disparity_image: numpy array corresponding to the disparity of "image"
     -focal_length: the focal length in pixels of the cameras used
     -distance_between_cameras: the baseline distance in meters between the cameras
 
-    Outputs:
+    Output(s):
     -detections: list of rects, where rect = x1, y1, x2, y2
     -detection_classes: list of class codes corresponding to rects
     -detection_depths: list of depths (meters) of each detected rect
