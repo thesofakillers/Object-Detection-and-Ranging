@@ -73,7 +73,7 @@ if model == "SVM":
     import SVM.params as params
     try:
         # load SVM object once, outside of loop
-        svm = cv2.ml.SVM_load(params.HOG_SVM_PATH)
+        svm = cv2.ml.SVM_load(params.HOG_SVM_PATH_SAVED)
     except: #if file does not exist, let user know
         print("Missing files - SVM!")
         exit()

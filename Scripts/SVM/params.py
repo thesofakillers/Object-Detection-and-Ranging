@@ -63,15 +63,11 @@ HOG_DESC_gammaCorrection = True # whether or not to employ gamma correction
     #</section>
 
     #<section>~~~~~~~~~~~~~~~~~~~HoG SVM Settings~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-try:
-    HOG_SVM_PATH = "../Write/"+sys.argv[3]
-
-    HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
-    HOG_SVM_max_training_iterations = 500  # stop training after max iterations
-    HOG_SVM_DEGREE = 3 #if poly kernel used
-except Exception as e:
-    pass    # if it's not being passed, then either we are using MRCNN or error
-            # is handled elsewhere
+HOG_SVM_PATH_SAVED = "../Write/svm_hog_3to1_RBF.xml" # for testing/usage
+HOG_SVM_PATH_TRAIN = "../Write/train.xml" # for saving trained files
+HOG_SVM_kernel = cv2.ml.SVM_RBF  # kernel type
+HOG_SVM_max_training_iterations = 500  # stop training after max iterations
+HOG_SVM_DEGREE = 3 #if poly kernel used
     #</section>
 
 #</section>
