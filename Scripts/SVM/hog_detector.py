@@ -1,19 +1,11 @@
 """
 functionality: perform detection based on HOG feature descriptor / SVM classification
-using a very basic multi-scale, sliding window (exhaustive search) approach
-
-This version: (c) 2018 Toby Breckon, Dept. Computer Science, Durham University, UK
-License: MIT License
-
-Minor portions: based on fork from https://github.com/nextgensparx/PyBOW
-
-Original Module Docstring^^^^ I slightly edited the script so that I can use it
-more modularly
+using selective search region proposal
 """
-from utils import *
+import utils
 import SVM.params as params
-from SVM.selective_search import *
-
+import SVM.selective_search as selective_search
+import numpy as np
 
 def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, distance_between_cameras):
     human_height = 1.75  # meters, on average
@@ -25,10 +17,11 @@ def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, dist
     detection_depths = []
 
     # get rid of sky when performing selective search
-    roi = select_roi_maintain_size(image, 116)
+    roi = utils.select_roi_maintain_size(image, 116)
 
     # perform selective_search
-    region_proposals = perform_selective_search(roi, ss_object, 1000, 3600)
+    region_proposals = selective_search.perform_selective_search(
+        roi, ss_object, 1000, 3600)
 
     # loop through region proposals
     for region_proposal_rect in region_proposals:
@@ -37,18 +30,18 @@ def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, dist
         x2, y2 = (x1 + w), (y1 + h)
 
         # calculate distance to observed region
-        region_depth = compute_single_depth(
+        region_depth = utils.compute_single_depth(
             (x1, y1, x2, y2), disparity_image, focal_length, distance_between_cameras)
 
         # check the detected area size makes sense
-        if not (area_depth_heuristic(human_height, human_width, h, w, region_depth, focal_length, 0.4)):
+        if not (utils.area_depth_heuristic(human_height, human_width, h, w, region_depth, focal_length, 0.4)):
             continue
 
         # get the corresponding window
-        region_proposal = crop_image(image, y1, y2, x1, x2)
+        region_proposal = utils.crop_image(image, y1, y2, x1, x2)
 
         # create image data object from window
-        img_data = ImageData(region_proposal)
+        img_data = utils.ImageData(region_proposal)
 
         # compute the hog descriptor
         img_data.compute_hog_descriptor()
@@ -75,7 +68,8 @@ def hog_detect(image, svm_object, ss_object, disparity_image, focal_length, dist
     detection_depths = np.array(detection_depths)
     # remove overlapping boxes.
     # get indices of surviving boxes
-    surviving_indeces = non_max_suppression_fast(np.int32(detections), 0.4)
+    surviving_indeces = utils.non_max_suppression_fast(
+        np.int32(detections), 0.4)
     # keep only surviving detections
     detections = detections[surviving_indeces].astype("int")
     detection_classes = detection_classes[surviving_indeces]
