@@ -1,10 +1,10 @@
 # CompVis_ObjDetection-DistanceRanging
 
-Originally made for Durham University's Department of Computer Science's course _Software, Systems & Applications_ under the sub-module _Computer Vision_, as part of the coursework in 2018/2019.
+Originally made for my university's Department of Computer Science's course _Software, Systems & Applications_ under the sub-module _Computer Vision_, as part of the coursework in 2018/2019.
 
 This project aims to "develop an object detection system that correctly detects one or more types of dynamic objects within the scene in-front of the vehicle and estimates the range (distance in metres) to those objects.", given a set of stereo images taken from a moving car in real world traffic.
 
-A few directories/files are not committed to this repository due to their unwieldy sizes, their availability on the web, or  their proprietary status. These include the training data, which is a cut-down copy of the original INRIA pedestrain data set from <http://pascal.inrialpes.fr/data/human/>. The stereo images themselves, which, due to their large amount, occupy a large amount of space, and are copyright of Durham University, are also part of the uncommitted files.
+A few directories/files are not committed to this repository due to their unwieldy sizes, their availability on the web, or  their proprietary status. These include the training data, which is a cut-down copy of the original INRIA pedestrain data set from <http://pascal.inrialpes.fr/data/human/>. The stereo images themselves, which, due to their large amount, occupy a large amount of space, and are copyright of my university, are also part of the uncommitted files.
 
 ## Quick Brief
 
@@ -27,12 +27,12 @@ It should be noted that if one only wishes to run the SVM implementation, then t
     -   [tensorflow-gpu](https://www.tensorflow.org/)
     -   [keras](https://keras.io/)
 
-On Durham University DUDE machines, running `opencv3-4.init` and `tensorflow.init` before proceeding with the rest of the installation should cover it.
+On the University DUDE machines, running `opencv3-4.init` and `tensorflow.init` before proceeding with the rest of the installation should cover it.
 
 2.  Then `cd` into [Scripts/Deep/](Scripts/Deep/) and run `pip3 install --user -r requirements.txt`.
 3.  In the same directory, run `python3 setup.py install --user`.
 4.  In any directory, run `pip3 install --user pycocotools`.
-5.  Finally, if not already present in [Scripts/Deep/](Scripts/Deep/), download the pre-trained weights `mask_rcnn_coco.h5` from [here](https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5) (should already be there for Durham Uni Submission)
+5.  Finally, if not already present in [Scripts/Deep/](Scripts/Deep/), download the pre-trained weights `mask_rcnn_coco.h5` from [here](https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5) (should already be there for Uni Submission)
 
 ## Usage
 
