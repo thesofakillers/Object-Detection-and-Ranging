@@ -1,4 +1,4 @@
-# CompVis_ObjDetection-DistanceRanging
+# Computer Vision - Object Detection and Distance Ranging
 
 Originally made for my university's Department of Computer Science's course _Software, Systems & Applications_ under the sub-module _Computer Vision_, as part of the coursework in 2018/2019.
 
